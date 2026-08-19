@@ -5,7 +5,7 @@ import { StudentJoin } from './components/StudentJoin';
 import { StudentScreen } from './components/StudentScreen';
 import { HostDashboard } from './components/HostDashboard';
 import { HostLogin } from './components/HostLogin';
-import { WifiOff } from 'lucide-react';
+import { ConnectionStatus } from './components/ConnectionStatus';
 
 export const App: React.FC = () => {
   const [isHost, setIsHost] = useState(false);
@@ -116,13 +116,8 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0f19]">
-      {/* Reconnection Overlay */}
-      {!isConnected && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-rose-950 border border-rose-500 text-rose-200 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 text-xs font-bold animate-pulse">
-          <WifiOff className="w-4 h-4 text-rose-400" />
-          CONNECTION LOST. RECONNECTING...
-        </div>
-      )}
+      {/* Sleek Floating Connection Status Pill (Non-blocking) */}
+      <ConnectionStatus isConnected={isConnected} />
 
       {/* Render Host Dashboard, Host Login, or Student Screen */}
       {isHost ? (
