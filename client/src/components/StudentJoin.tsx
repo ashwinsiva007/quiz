@@ -317,7 +317,7 @@ export const StudentJoin: React.FC<StudentJoinProps> = ({ onJoined }) => {
           </div>
 
           <p className="text-center text-xs text-slate-600 pb-2">
-            No account or login needed · ASI Student Chapter · Sri Shakthi Institute of Engineering and Technology
+            No account or login needed · Analytics Society of India — Student Chapter
           </p>
         </div>
       </main>

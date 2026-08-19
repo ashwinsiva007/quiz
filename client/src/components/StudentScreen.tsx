@@ -227,7 +227,7 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
       </main>
 
       <footer className="py-3 text-center text-xs text-slate-600 border-t border-slate-900">
-        Analytics Society of India &bull; Sri Shakthi Institute of Engineering and Technology
+        Analytics Society of India — Student Chapter
       </footer>
     </div>
   );

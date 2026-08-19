@@ -435,7 +435,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
 
             <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-slate-300 text-sm">
               <p className="font-bold text-white text-base mb-1">CONGRATULATIONS TO ALL PARTICIPANTS!</p>
-              <p>Analytics Society of India — Student Chapter &bull; Sri Shakthi Institute of Engineering and Technology</p>
+              <p>Analytics Society of India — Student Chapter</p>
             </div>
           </div>
         )}
