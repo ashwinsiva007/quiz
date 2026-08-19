@@ -3,26 +3,29 @@ import { io, Socket } from 'socket.io-client';
 /**
  * Backend URL resolution strategy:
  * 1. VITE_BACKEND_URL env variable (set in Vercel / Railway deployment)
- * 2. If on localhost → connect to localhost:3000
- * 3. On any deployed domain → assumes Railway backend URL from env
+ * 2. If on localhost / LAN → connect to port 3000
+ * 3. Fallback to current origin
  */
 const getSocketUrl = (): string => {
-  // Env variable takes top priority (set in Vercel dashboard → Settings → Environment Variables)
-  if (import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL as string;
+  const envUrl = (import.meta as any).env?.VITE_BACKEND_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    return envUrl.trim();
   }
 
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
 
-    // Local development: connect to localhost backend
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168') || hostname.startsWith('10.')) {
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
       return `${protocol}//${hostname}:3000`;
     }
 
-    // Deployed on Vercel: Use VITE_BACKEND_URL env variable
-    // Fallback: try same host with port 3000 (won't work on Vercel, but won't crash)
     return `${protocol}//${hostname}:3000`;
   }
 
@@ -34,5 +37,5 @@ export const socket: Socket = io(getSocketUrl(), {
   reconnection: true,
   reconnectionAttempts: 20,
   reconnectionDelay: 1000,
-  transports: ['websocket', 'polling'], // WebSocket first, polling fallback
+  transports: ['websocket', 'polling'],
 });

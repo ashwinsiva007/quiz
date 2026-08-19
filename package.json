@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Real-Time Live Quiz Platform for ASI Student Chapter Event",
   "scripts": {
+    "build": "cd client && npm install && npm run build && node -e \"const fs=require('fs'); fs.cpSync('dist', '../dist', {recursive: true});\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
