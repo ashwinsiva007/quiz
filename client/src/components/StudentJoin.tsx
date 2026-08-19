@@ -84,6 +84,15 @@ export const StudentJoin: React.FC<StudentJoinProps> = ({ onJoined }) => {
     setStep('checking_pin');
     setErrorMsg(null);
 
+    if (!isLiveMode) {
+      // Demo mode: gameEngine PIN is local to each browser instance.
+      // We cannot validate cross-device, so trust the QR-supplied PIN and
+      // go straight to name entry without validation.
+      setTimeout(() => setStep('name_entry'), 400); // brief pause feels natural
+      return;
+    }
+
+    // Live mode: validate against real Railway server
     socket.emit(
       'student:checkPin',
       { pin: pinToCheck },

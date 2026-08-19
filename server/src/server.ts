@@ -13,6 +13,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   /\.vercel\.app$/,
   /\.railway\.app$/,
+  /\.onrender\.com$/,
 ];
 
 app.use(cors({

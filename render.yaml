@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: asi-quiz-server
+    env: node
+    region: singapore
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: HOST_PASSWORD
+        value: asi2026
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+    healthCheckPath: /api/health
