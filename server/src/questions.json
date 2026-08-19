@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question": "Which technology allows an LLM to retrieve external information from a knowledge base before generating an answer?",
+    "options": [
+      "A. CNN (Convolutional Neural Network)",
+      "B. RAG (Retrieval-Augmented Generation)",
+      "C. GAN (Generative Adversarial Network)",
+      "D. PCA (Principal Component Analysis)"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 2,
+    "question": "What is the core architectural innovation behind modern Large Language Models (LLMs) introduced in 2017?",
+    "options": [
+      "A. Recurrent Neural Networks (RNN)",
+      "B. Support Vector Machines (SVM)",
+      "C. Transformer Architecture",
+      "D. Decision Trees"
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 3,
+    "question": "What term describes when an AI language model generates convincing but incorrect or fabricated information?",
+    "options": [
+      "A. Overfitting",
+      "B. Gradient Descent",
+      "C. Hallucination",
+      "D. Quantization"
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 4,
+    "question": "Which type of machine learning uses rewards and penalties to train an agent in an interactive environment?",
+    "options": [
+      "A. Supervised Learning",
+      "B. Unsupervised Learning",
+      "C. Reinforcement Learning",
+      "D. Self-Supervised Learning"
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 5,
+    "question": "What kind of database is specifically optimized for storing and searching high-dimensional vector embeddings in AI applications?",
+    "options": [
+      "A. Relational Database (SQL)",
+      "B. Vector Database (e.g. Pinecone, Chroma)",
+      "C. Graph Database",
+      "D. Key-Value Store"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 6,
+    "question": "Which process adjusts the weights of a pre-trained foundation model on a specific domain dataset to improve performance?",
+    "options": [
+      "A. Fine-Tuning",
+      "B. Data Normalization",
+      "C. Web Scraping",
+      "D. Tokenization"
+    ],
+    "correctAnswer": 0,
+    "timeLimit": 20
+  },
+  {
+    "id": 7,
+    "question": "In Natural Language Processing, what is the term for converting raw text into smaller units (words or subwords) for a model?",
+    "options": [
+      "A. Embedding",
+      "B. Tokenization",
+      "C. Classification",
+      "D. Decoding"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 8,
+    "question": "When a machine learning model performs exceptionally well on training data but poorly on unseen test data, it is suffering from:",
+    "options": [
+      "A. Underfitting",
+      "B. Overfitting",
+      "C. Vanishing Gradient",
+      "D. High Bias"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 9,
+    "question": "What is the primary function of RLHF (Reinforcement Learning from Human Feedback) in LLM training?",
+    "options": [
+      "A. Increasing model training speed",
+      "B. Aligning LLM output with human preferences and safety guidelines",
+      "C. Reducing memory footprint of GPUs",
+      "D. Automatically translating text to SQL"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 10,
+    "question": "Which popular neural network architecture is historically most associated with Computer Vision and Image Processing tasks?",
+    "options": [
+      "A. CNN (Convolutional Neural Network)",
+      "B. LSTM (Long Short-Term Memory)",
+      "C. Autoencoder",
+      "D. MLP (Multilayer Perceptron)"
+    ],
+    "correctAnswer": 0,
+    "timeLimit": 20
+  }
+]
