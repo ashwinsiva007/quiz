@@ -2,7 +2,7 @@ import React from 'react';
 import { StudentQuizState } from '../types';
 import { socket } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
-import { CheckCircle2, XCircle, Clock, Trophy, Award, Sparkles, Play, ArrowRight, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Trophy, Award, Sparkles } from 'lucide-react';
 
 interface StudentScreenProps {
   quizState: StudentQuizState;
@@ -16,18 +16,6 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
   const handleSelectOption = (optionIndex: number) => {
     if (state !== 'QUESTION_ACTIVE' || participant?.hasAnswered) return;
     socket.emit('student:submitAnswer', { optionIndex });
-  };
-
-  const handleStartSolo = () => {
-    socket.emit('host:startQuiz');
-  };
-
-  const handleNextQuestion = () => {
-    socket.emit('host:nextQuestion');
-  };
-
-  const handlePlayAgain = () => {
-    socket.emit('host:resetQuiz');
   };
 
   const getOptionLetter = (idx: number) => ['A', 'B', 'C', 'D'][idx] || '';
@@ -84,17 +72,14 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
 
             <div className="py-4 px-6 bg-slate-900/80 rounded-2xl border border-slate-700/60 inline-flex items-center gap-3 text-slate-300">
               <div className="w-3 h-3 rounded-full bg-amber-400 animate-ping"></div>
-              <span className="font-medium text-sm sm:text-base">Waiting for host to start the game...</span>
+              <span className="font-medium text-sm sm:text-base">Waiting for host to start the game…</span>
             </div>
 
-            <div className="pt-2">
-              <button
-                onClick={handleStartSolo}
-                className="w-full sm:w-auto py-3 px-6 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition-all inline-flex items-center justify-center gap-2"
-              >
-                <Play className="w-4 h-4 text-emerald-400" /> Start Playing Now (Solo)
-              </button>
-            </div>
+            {quizState.participantCount > 0 && (
+              <p className="text-xs text-slate-500">
+                {quizState.participantCount} participant{quizState.participantCount !== 1 ? 's' : ''} in the game
+              </p>
+            )}
           </div>
         )}
 
@@ -189,13 +174,8 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               </div>
             )}
 
-            <div className="text-center pt-2">
-              <button
-                onClick={handleNextQuestion}
-                className="py-3 px-6 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 transition-all inline-flex items-center gap-2 shadow-lg"
-              >
-                Continue <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="text-center pt-2 text-sm text-slate-400 font-medium">
+              Waiting for host to reveal results…
             </div>
           </div>
         )}
@@ -220,13 +200,8 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               </div>
             ) : null}
 
-            <div className="pt-3">
-              <button
-                onClick={handleNextQuestion}
-                className="py-3 px-6 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 transition-all inline-flex items-center gap-2 shadow-lg"
-              >
-                Next Question <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="pt-3 text-sm text-slate-400 text-center font-medium">
+              Waiting for next question…
             </div>
           </div>
         )}
@@ -244,13 +219,8 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               )}
             </div>
 
-            <div className="pt-2">
-              <button
-                onClick={handlePlayAgain}
-                className="py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:from-rose-500 hover:to-amber-400 inline-flex items-center gap-2 shadow-lg transition-all"
-              >
-                <RotateCcw className="w-4 h-4" /> Play Again
-              </button>
+            <div className="pt-2 text-xs text-slate-500 text-center">
+              Thank you for participating in ASI Quiz Arena!
             </div>
           </div>
         )}

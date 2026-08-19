@@ -102,29 +102,36 @@ export function registerSocketHandlers(io: Server) {
       });
     });
 
-    socket.on('student:join', (data: { pin: string; name: string }) => {
+    socket.on('student:join', (data: { pin: string; name: string }, ack?: (res: { success: boolean; message?: string; pin?: string; participant?: unknown }) => void) => {
+      const respond = (payload: { success: boolean; message?: string; pin?: string; participant?: unknown }) => {
+        // Support both socket.io acknowledgement (callback) and event-based response
+        socket.emit('student:joinResponse', payload);
+        if (typeof ack === 'function') ack(payload);
+      };
+
       if (!activeQuiz) {
-        socket.emit('student:joinResponse', { success: false, message: 'NO ACTIVE QUIZ ROOM' });
+        respond({ success: false, message: 'NO ACTIVE QUIZ ROOM' });
         return;
       }
 
-      if (data.pin.trim() !== activeQuiz.pin) {
-        socket.emit('student:joinResponse', { success: false, message: 'INVALID GAME PIN. Check projector screen.' });
+      if (!data || data.pin.trim() !== activeQuiz.pin) {
+        respond({ success: false, message: 'INVALID GAME PIN. Please check the projector screen.' });
+        return;
+      }
+
+      if (activeQuiz.state !== 'LOBBY') {
+        respond({ success: false, message: 'QUIZ ALREADY STARTED. This quiz is no longer accepting participants.' });
         return;
       }
 
       const res = activeQuiz.joinParticipant(socket.id, data.name);
       if (!res.success) {
-        socket.emit('student:joinResponse', { success: false, message: res.message });
+        respond({ success: false, message: res.message });
         return;
       }
 
       socket.join('participants');
-      socket.emit('student:joinResponse', {
-        success: true,
-        participant: res.participant,
-        pin: activeQuiz.pin,
-      });
+      respond({ success: true, participant: res.participant, pin: activeQuiz.pin });
 
       broadcastUpdate(io);
     });
