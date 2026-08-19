@@ -406,17 +406,27 @@ class GameEngine {
     return this.state.pin;
   }
 
+  private autoAdvanceTimer: any = null;
+
+  private clearAutoAdvanceTimer() {
+    if (this.autoAdvanceTimer) {
+      clearTimeout(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = null;
+    }
+  }
+
   public startQuiz() {
     this.isHostRole = true;
+    this.clearAutoAdvanceTimer();
     this.state.currentQuestionIndex = 0;
     this.startQuestion(0);
   }
 
   public startQuestion(index: number) {
     this.isHostRole = true;
+    this.clearAutoAdvanceTimer();
     if (index >= this.state.questions.length) {
-      this.state.state = 'FINISHED';
-      this.saveAndBroadcast(true);
+      this.finishQuiz();
       return;
     }
 
@@ -457,24 +467,66 @@ class GameEngine {
   public endQuestion() {
     this.isHostRole = true;
     if (this.timer) clearInterval(this.timer);
+    this.clearAutoAdvanceTimer();
+
     this.state.state = 'QUESTION_RESULTS';
     this.saveAndBroadcast(true);
+
+    const questionNumber = this.state.currentQuestionIndex + 1;
+    const totalQuestions = this.state.questions.length;
+    const isLast = questionNumber >= totalQuestions;
+    // Show leaderboard every 5th question (Q5, Q10, Q15) AND after 13th question onwards (Q13, Q14...)
+    const isLeaderboardMilestone = (questionNumber % 5 === 0) || (questionNumber >= 13);
+
+    // Auto-advance sequence:
+    // Display results for 5 seconds
+    this.autoAdvanceTimer = setTimeout(() => {
+      if (isLast) {
+        this.finishQuiz();
+      } else if (isLeaderboardMilestone) {
+        this.showLeaderboard();
+      } else {
+        this.nextQuestion();
+      }
+    }, 5000);
   }
 
   public showLeaderboard() {
     this.isHostRole = true;
+    this.clearAutoAdvanceTimer();
     this.state.state = 'LEADERBOARD';
     this.saveAndBroadcast(true);
+
+    const questionNumber = this.state.currentQuestionIndex + 1;
+    const totalQuestions = this.state.questions.length;
+    const isLast = questionNumber >= totalQuestions;
+
+    // Display leaderboard for 6 thrilling seconds, then automatically advance
+    this.autoAdvanceTimer = setTimeout(() => {
+      if (isLast) {
+        this.finishQuiz();
+      } else {
+        this.nextQuestion();
+      }
+    }, 6000);
   }
 
   public nextQuestion() {
     this.isHostRole = true;
+    this.clearAutoAdvanceTimer();
     if (this.state.currentQuestionIndex + 1 < this.state.questions.length) {
       this.startQuestion(this.state.currentQuestionIndex + 1);
     } else {
-      this.state.state = 'FINISHED';
-      this.saveAndBroadcast(true);
+      this.finishQuiz();
     }
+  }
+
+  public finishQuiz() {
+    this.isHostRole = true;
+    this.clearAutoAdvanceTimer();
+    if (this.timer) clearInterval(this.timer);
+    this.state.state = 'FINISHED';
+    this.saveAndBroadcast(true);
   }
 
   public resetQuiz() {

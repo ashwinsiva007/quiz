@@ -313,14 +313,32 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
             </div>
 
             {/* Host Action Control */}
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={handleShowLeaderboard}
-                className="py-4 px-8 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 shadow-xl flex items-center gap-3"
-              >
-                <BarChart3 className="w-5 h-5" />
-                SHOW LEADERBOARD
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold text-amber-300">
+                <Clock className="w-4 h-4 animate-spin text-amber-400" />
+                <span>
+                  {(currentQuestion?.questionIndex || 1) % 5 === 0 || (currentQuestion?.questionIndex || 1) >= 13
+                    ? '⚡ Leaderboard appearing in 5s (Auto)'
+                    : '⚡ Next question starting in 5s (Auto)'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleShowLeaderboard}
+                  className="py-3 px-6 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-2"
+                >
+                  <BarChart3 className="w-4 h-4 text-amber-400" />
+                  Show Leaderboard Now
+                </button>
+                <button
+                  onClick={handleNextQuestion}
+                  className="py-3 px-6 rounded-xl font-extrabold text-sm bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 shadow-lg flex items-center gap-2"
+                >
+                  <SkipForward className="w-4 h-4" />
+                  Next Question →
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -369,13 +387,18 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
               })}
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
+              <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-300">
+                <Clock className="w-4 h-4 animate-spin text-emerald-400" />
+                <span>⚡ Next question starting in 6s (Auto)</span>
+              </div>
+
               <button
                 onClick={handleNextQuestion}
                 className="py-4 px-8 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 shadow-xl flex items-center gap-3"
               >
                 <SkipForward className="w-5 h-5" />
-                NEXT QUESTION
+                NEXT QUESTION NOW →
               </button>
             </div>
           </div>

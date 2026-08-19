@@ -194,9 +194,19 @@ export class QuizEngine {
     return { success: true };
   }
 
+  private autoAdvanceTimer: NodeJS.Timeout | null = null;
+
+  private clearAutoAdvanceTimer() {
+    if (this.autoAdvanceTimer) {
+      clearTimeout(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = null;
+    }
+  }
+
   public endQuestion() {
     if (this.state !== 'QUESTION_ACTIVE') return;
     this.stopTimer();
+    this.clearAutoAdvanceTimer();
     this.state = 'QUESTION_RESULTS';
 
     // Calculate scores for this question
@@ -219,18 +229,49 @@ export class QuizEngine {
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
+
+    const questionNumber = this.currentQuestionIndex + 1;
+    const totalQuestions = this.questions.length;
+    const isLast = questionNumber >= totalQuestions;
+    // Show leaderboard every 5 questions and after Q13 onwards
+    const isLeaderboardMilestone = (questionNumber % 5 === 0) || (questionNumber >= 13);
+
+    // Auto-advance
+    this.autoAdvanceTimer = setTimeout(() => {
+      if (isLast) {
+        this.finishQuiz();
+      } else if (isLeaderboardMilestone) {
+        this.showLeaderboard();
+      } else {
+        this.nextQuestion();
+      }
+    }, 5000);
   }
 
   public showLeaderboard() {
     if (this.state !== 'QUESTION_RESULTS') return;
+    this.clearAutoAdvanceTimer();
     this.state = 'LEADERBOARD';
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
+
+    const questionNumber = this.currentQuestionIndex + 1;
+    const totalQuestions = this.questions.length;
+    const isLast = questionNumber >= totalQuestions;
+
+    this.autoAdvanceTimer = setTimeout(() => {
+      if (isLast) {
+        this.finishQuiz();
+      } else {
+        this.nextQuestion();
+      }
+    }, 6000);
   }
 
   public nextQuestion() {
     if (this.state !== 'LEADERBOARD' && this.state !== 'QUESTION_RESULTS') return;
+    this.clearAutoAdvanceTimer();
     const nextIdx = this.currentQuestionIndex + 1;
     if (nextIdx >= this.questions.length) {
       this.finishQuiz();
@@ -241,6 +282,7 @@ export class QuizEngine {
 
   public finishQuiz() {
     this.stopTimer();
+    this.clearAutoAdvanceTimer();
     this.state = 'FINISHED';
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
@@ -248,6 +290,8 @@ export class QuizEngine {
   }
 
   public resetQuiz() {
+    this.stopTimer();
+    this.clearAutoAdvanceTimer();
     this.stopTimer();
     this.state = 'LOBBY';
     this.currentQuestionIndex = 0;
