@@ -2,7 +2,7 @@ import React from 'react';
 import { StudentQuizState } from '../types';
 import { socket } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
-import { CheckCircle2, XCircle, Clock, Trophy, Award, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Trophy, Award, Sparkles, Play, ArrowRight, RotateCcw } from 'lucide-react';
 
 interface StudentScreenProps {
   quizState: StudentQuizState;
@@ -16,6 +16,18 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
   const handleSelectOption = (optionIndex: number) => {
     if (state !== 'QUESTION_ACTIVE' || participant?.hasAnswered) return;
     socket.emit('student:submitAnswer', { optionIndex });
+  };
+
+  const handleStartSolo = () => {
+    socket.emit('host:startQuiz');
+  };
+
+  const handleNextQuestion = () => {
+    socket.emit('host:nextQuestion');
+  };
+
+  const handlePlayAgain = () => {
+    socket.emit('host:resetQuiz');
   };
 
   const getOptionLetter = (idx: number) => ['A', 'B', 'C', 'D'][idx] || '';
@@ -61,16 +73,27 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
 
         {/* STATE: LOBBY */}
         {state === 'LOBBY' && (
-          <div className="bg-[#151c2e] border border-slate-800 rounded-3xl p-8 text-center shadow-2xl glass-panel">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 mb-6 border border-emerald-500/20">
+          <div className="bg-[#151c2e] border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl space-y-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <Sparkles className="w-10 h-10 animate-bounce-short" />
             </div>
-            <h2 className="text-3xl font-black text-white font-['Outfit'] mb-2">YOU'RE IN!</h2>
-            <p className="text-lg font-semibold text-rose-400 mb-6">Welcome, {studentName}</p>
+            <div>
+              <h2 className="text-3xl font-black text-white font-['Outfit'] mb-1">YOU'RE IN!</h2>
+              <p className="text-lg font-semibold text-rose-400">Welcome, {studentName}</p>
+            </div>
 
             <div className="py-4 px-6 bg-slate-900/80 rounded-2xl border border-slate-700/60 inline-flex items-center gap-3 text-slate-300">
               <div className="w-3 h-3 rounded-full bg-amber-400 animate-ping"></div>
-              <span className="font-medium text-sm sm:text-base">Waiting for the host to start the quiz...</span>
+              <span className="font-medium text-sm sm:text-base">Waiting for host to start the game...</span>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={handleStartSolo}
+                className="w-full sm:w-auto py-3 px-6 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition-all inline-flex items-center justify-center gap-2"
+              >
+                <Play className="w-4 h-4 text-emerald-400" /> Start Playing Now (Solo)
+              </button>
             </div>
           </div>
         )}
@@ -113,7 +136,7 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               <div className="bg-emerald-950/40 border-2 border-emerald-500/50 rounded-2xl p-8 text-center space-y-3">
                 <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto animate-bounce-short" />
                 <h4 className="text-2xl font-black text-emerald-300 font-['Outfit']">ANSWER SUBMITTED</h4>
-                <p className="text-sm text-emerald-200/80">✓ Your answer has been locked in. Waiting for timer to end...</p>
+                <p className="text-sm text-emerald-200/80">✓ Locked in! Waiting for results...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
@@ -165,6 +188,15 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
                 </div>
               </div>
             )}
+
+            <div className="text-center pt-2">
+              <button
+                onClick={handleNextQuestion}
+                className="py-3 px-6 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 transition-all inline-flex items-center gap-2 shadow-lg"
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -188,7 +220,14 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               </div>
             ) : null}
 
-            <p className="text-xs text-slate-400">Get ready for the next question on the projector!</p>
+            <div className="pt-3">
+              <button
+                onClick={handleNextQuestion}
+                className="py-3 px-6 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 transition-all inline-flex items-center gap-2 shadow-lg"
+              >
+                Next Question <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -204,7 +243,15 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
                 <p className="text-sm font-semibold text-rose-400 mt-2">Rank: #{myRankEntry.rank}</p>
               )}
             </div>
-            <p className="text-xs text-slate-400">Thank you for participating in ASI Quiz Arena!</p>
+
+            <div className="pt-2">
+              <button
+                onClick={handlePlayAgain}
+                className="py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:from-rose-500 hover:to-amber-400 inline-flex items-center gap-2 shadow-lg transition-all"
+              >
+                <RotateCcw className="w-4 h-4" /> Play Again
+              </button>
+            </div>
           </div>
         )}
       </main>
