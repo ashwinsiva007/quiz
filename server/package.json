@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "main": "src/server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "build": "tsc && node -e \"import('fs').then(fs => { fs.copyFileSync('src/questions.json', 'dist/questions.json'); console.log('✅ questions.json copied to dist/'); })\"",
+    "start": "node dist/server.js",
+    "postinstall": "npm run build"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
