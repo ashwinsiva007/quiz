@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { socket } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
 import { Question } from '../types';
-import defaultQuestionsData from '../../../server/src/questions.json';
+import defaultQuestionsData from '../questions.json';
 import { KeyRound, Plus, Trash2, Upload, FileText, CheckCircle2, ShieldCheck, AlertCircle, Play, Sparkles } from 'lucide-react';
 
 interface HostLoginProps {

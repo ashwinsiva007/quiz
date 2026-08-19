@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { socket } from './socket';
+import { socket, subscribeConnectionStatus } from './socket';
 import { StudentQuizState, HostState } from './types';
 import { StudentJoin } from './components/StudentJoin';
 import { StudentScreen } from './components/StudentScreen';
@@ -70,6 +70,13 @@ export const App: React.FC = () => {
 
     const onDisconnect = () => setIsConnected(false);
 
+    const unsubscribeStatus = subscribeConnectionStatus((mode) => {
+      setIsConnected(mode === 'connected' || mode === 'demo');
+      if (mode === 'connected' || mode === 'demo') {
+        socket.emit('getInitialState');
+      }
+    });
+
     const onQuizStateUpdate = (newState: StudentQuizState) => {
       setStudentState(newState);
     };
@@ -94,6 +101,7 @@ export const App: React.FC = () => {
     }
 
     return () => {
+      unsubscribeStatus();
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('quizStateUpdate', onQuizStateUpdate);
