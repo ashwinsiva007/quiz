@@ -1,47 +1,56 @@
 import { io, Socket } from 'socket.io-client';
+import { socket as localEngine } from './gameEngine';
 
 /**
- * Real Socket.IO client — connects to the Railway backend server.
+ * Smart socket that works in two modes:
  *
- * ─────────────────────────────────────────────────
- * PRODUCTION (Vercel):
- *   Set VITE_SOCKET_URL in your Vercel project settings:
- *   Settings → Environment Variables → VITE_SOCKET_URL
- *   Value: https://your-project.up.railway.app
+ * ── DEMO MODE (default, Vercel with no backend) ──────────────────
+ *   No VITE_SOCKET_URL set → uses local GameEngine (BroadcastChannel).
+ *   Works perfectly for single-device demos, projector displays, etc.
+ *   No errors, no connection warnings.
  *
- * LOCAL DEV:
- *   Leave VITE_SOCKET_URL unset (or set to empty string).
- *   Vite proxy in vite.config.ts routes /socket.io → localhost:3000.
- * ─────────────────────────────────────────────────
+ * ── LIVE MODE (Railway backend configured) ────────────────────────
+ *   VITE_SOCKET_URL is set → uses real Socket.IO for 150+ students
+ *   on separate devices. Set in Vercel: Settings → Env Vars.
+ *   Example: VITE_SOCKET_URL=https://your-project.up.railway.app
  */
-const SOCKET_URL: string = (import.meta.env.VITE_SOCKET_URL as string) ?? '';
-const isProduction = import.meta.env.PROD;
+const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL as string) ?? '';
 
-// In production with no server URL configured, don't attempt connection at all
-// (prevents infinite reconnect attempts that flood browser console)
-const shouldConnect = !isProduction || !!SOCKET_URL;
+/** true = Railway backend connected, false = local demo engine */
+export const isLiveMode = !!SOCKET_URL;
 
-export const socket: Socket = io(SOCKET_URL, {
-  // Try WebSocket first, fall back to long-polling (required for Railway)
-  transports: ['websocket', 'polling'],
-  autoConnect: shouldConnect,
-  reconnection: shouldConnect,
-  reconnectionAttempts: shouldConnect ? Infinity : 0,
-  reconnectionDelay: 2000,
-  reconnectionDelayMax: 10000,
-  timeout: 20000,
-  withCredentials: false,
-});
+let _socket: typeof localEngine | Socket;
 
-// Development-only connection logging
-if (import.meta.env.DEV) {
-  socket.on('connect', () =>
-    console.log('[Socket] ✅ Connected:', socket.id, '→', SOCKET_URL || 'same-origin (Vite proxy)')
-  );
-  socket.on('disconnect', (reason) =>
-    console.warn('[Socket] ❌ Disconnected:', reason)
-  );
-  socket.on('connect_error', (err) =>
-    console.error('[Socket] Connection error:', err.message)
-  );
+if (isLiveMode) {
+  // LIVE: real Socket.IO → Railway backend
+  _socket = io(SOCKET_URL, {
+    transports: ['websocket', 'polling'],
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 2000,
+    reconnectionDelayMax: 10000,
+    timeout: 20000,
+    withCredentials: false,
+  });
+
+  if (import.meta.env.DEV) {
+    (_socket as Socket).on('connect', () =>
+      console.log('[Socket] ✅ Live mode — connected to Railway:', (_socket as Socket).id)
+    );
+    (_socket as Socket).on('disconnect', (reason) =>
+      console.warn('[Socket] Disconnected:', reason)
+    );
+    (_socket as Socket).on('connect_error', (err) =>
+      console.error('[Socket] Connection error:', err.message)
+    );
+  }
+} else {
+  // DEMO: local game engine — works on same device/browser
+  _socket = localEngine;
+  if (import.meta.env.DEV) {
+    console.info('[Socket] Demo mode — using local game engine. Set VITE_SOCKET_URL for live events.');
+  }
 }
+
+export const socket = _socket as Socket;

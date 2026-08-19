@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import confetti from 'canvas-confetti';
 import { HostState } from '../types';
-import { socket } from '../socket';
+import { socket, isLiveMode } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
 import { Users, Play, SkipForward, RotateCcw, AlertTriangle, X, Award, CheckCircle, BarChart3, Clock, Sparkles } from 'lucide-react';
 
@@ -112,6 +112,15 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
               {/* QR Code — minimum 280px for projector/smart board readability */}
               <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-slate-800 inline-block mb-3">
                 <QRCodeSVG value={studentJoinUrl} size={280} level="M" includeMargin />
+              </div>
+
+              {/* Mode indicator */}
+              <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border mb-1 ${
+                isLiveMode
+                  ? 'text-emerald-400 bg-emerald-950/50 border-emerald-500/40'
+                  : 'text-amber-400 bg-amber-950/50 border-amber-500/40'
+              }`}>
+                {isLiveMode ? '🟢 Live Event Mode — Real-time sync active' : '🟡 Demo Mode — Set VITE_SOCKET_URL for live events'}
               </div>
               
               <div className="flex items-center gap-2 mb-2">
