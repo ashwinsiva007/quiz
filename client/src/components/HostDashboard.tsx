@@ -12,6 +12,8 @@ interface HostDashboardProps {
 
 export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [customBaseUrl, setCustomBaseUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [studentJoinUrl, setStudentJoinUrl] = useState('');
 
@@ -20,10 +22,10 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const origin = window.location.origin;
-      setStudentJoinUrl(`${origin}/?pin=${pin}`);
+      const base = customBaseUrl.trim() || window.location.origin;
+      setStudentJoinUrl(`${base.replace(/\/$/, '')}/?pin=${pin}`);
     }
-  }, [pin]);
+  }, [pin, customBaseUrl]);
 
   const handleCopyLink = () => {
     if (studentJoinUrl) {
@@ -76,9 +78,34 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                 {pin}
               </div>
 
-              <div className="text-xs text-slate-400 mt-2 mb-4">
-                Students open: <span className="text-slate-200 font-mono font-semibold">{studentJoinUrl.replace(/\?pin=.*$/, '')}</span>
+              <div className="text-xs text-slate-400 mt-2 mb-3">
+                Students open:{' '}
+                <span className="text-slate-200 font-mono font-semibold">{studentJoinUrl.replace(/\?pin=.*$/, '')}</span>
+                <button
+                  onClick={() => setIsEditingUrl(!isEditingUrl)}
+                  className="ml-2 text-[10px] text-rose-400 hover:underline"
+                >
+                  {isEditingUrl ? 'Close' : 'Change URL'}
+                </button>
               </div>
+
+              {isEditingUrl && (
+                <div className="w-full mb-3 bg-slate-900/90 p-3 rounded-xl border border-slate-700 text-left space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                    Custom Join URL / Domain
+                  </label>
+                  <input
+                    type="text"
+                    value={customBaseUrl}
+                    onChange={(e) => setCustomBaseUrl(e.target.value)}
+                    placeholder="https://quiz-team-neurox.vercel.app"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-rose-500"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Changes the QR Code and student link to your custom domain or LAN IP.
+                  </p>
+                </div>
+              )}
 
               {/* QR Code */}
               <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-slate-800 inline-block mb-3">
@@ -97,6 +124,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                   {copied ? '✓ Copied' : 'Copy Link'}
                 </button>
               </div>
+
 
 
               {/* Start Quiz Action */}
