@@ -12,17 +12,26 @@ interface HostDashboardProps {
 
 export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [studentJoinUrl, setStudentJoinUrl] = useState('');
+
 
   const { pin, state, currentQuestion, questionResult, leaderboard, participantCount, participants, answerCount, timeLeft, timeLimit } = hostState;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      setStudentJoinUrl(`http://${hostname}${port}/?pin=${pin}`);
+      const origin = window.location.origin;
+      setStudentJoinUrl(`${origin}/?pin=${pin}`);
     }
   }, [pin]);
+
+  const handleCopyLink = () => {
+    if (studentJoinUrl) {
+      navigator.clipboard.writeText(studentJoinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   useEffect(() => {
     if (state === 'FINISHED' || state === 'LEADERBOARD') {
@@ -67,18 +76,28 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                 {pin}
               </div>
 
-              <div className="text-xs text-slate-400 mt-2 mb-6">
+              <div className="text-xs text-slate-400 mt-2 mb-4">
                 Students open: <span className="text-slate-200 font-mono font-semibold">{studentJoinUrl.replace(/\?pin=.*$/, '')}</span>
               </div>
 
               {/* QR Code */}
-              <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-slate-800 inline-block mb-4">
-                <QRCodeSVG value={studentJoinUrl} size={180} level="M" />
+              <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-slate-800 inline-block mb-3">
+                <QRCodeSVG value={studentJoinUrl} size={190} level="M" />
               </div>
-              <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                Scan QR Code with mobile camera to join instantly
-              </p>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  Scan with mobile camera to join instantly
+                </p>
+                <button
+                  onClick={handleCopyLink}
+                  className="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 font-semibold transition-colors"
+                >
+                  {copied ? '✓ Copied' : 'Copy Link'}
+                </button>
+              </div>
+
 
               {/* Start Quiz Action */}
               <button
