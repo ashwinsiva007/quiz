@@ -8,6 +8,7 @@ import { HostLogin } from './components/HostLogin';
 
 export const App: React.FC = () => {
   const [isHost, setIsHost] = useState(false);
+  const [isJoinRoute, setIsJoinRoute] = useState(false);
   const [isHostAuthenticated, setIsHostAuthenticated] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [studentName, setStudentName] = useState('');
@@ -41,11 +42,17 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     // Determine route from window.location.pathname
-    if (window.location.pathname.startsWith('/host')) {
+    const path = window.location.pathname;
+    if (path.startsWith('/host')) {
       setIsHost(true);
+    } else if (path.startsWith('/join')) {
+      // /join route — always show StudentJoin (QR scan landing page)
+      // Never restore session here; student must explicitly join
+      setIsJoinRoute(true);
+      setIsHost(false);
     } else {
       setIsHost(false);
-      // Check session storage
+      // Check session storage for reconnection (only on root route)
       const savedPin = sessionStorage.getItem('asi_quiz_pin');
       const savedName = sessionStorage.getItem('asi_quiz_name');
       if (savedPin && savedName) {
@@ -102,6 +109,17 @@ export const App: React.FC = () => {
           <HostDashboard hostState={hostState} />
         ) : (
           <HostLogin onHostAuthenticated={() => setIsHostAuthenticated(true)} />
+        )
+      ) : isJoinRoute ? (
+        // /join route — always show StudentJoin (never show a cached session here)
+        hasJoined ? (
+          <StudentScreen
+            quizState={studentState}
+            studentName={studentName}
+            onLeave={handleLeaveStudent}
+          />
+        ) : (
+          <StudentJoin onJoined={handleStudentJoined} />
         )
       ) : hasJoined ? (
         <StudentScreen

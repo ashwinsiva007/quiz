@@ -23,12 +23,15 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const base = customBaseUrl.trim() || window.location.origin;
-      setStudentJoinUrl(`${base.replace(/\/$/, '')}/?pin=${pin}`);
+      // IMPORTANT: URL must point to /join (not /) so QR takes students to the join page,
+      // not the root which may show Vercel deployment protection.
+      setStudentJoinUrl(`${base.replace(/\/$/, '')}/join?pin=${pin}`);
     }
   }, [pin, customBaseUrl]);
 
   const handleCopyLink = () => {
     if (studentJoinUrl) {
+      // Copy the full join URL (including the ?pin= param)
       navigator.clipboard.writeText(studentJoinUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -78,14 +81,13 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                 {pin}
               </div>
 
-              <div className="text-xs text-slate-400 mt-2 mb-3">
-                Students open:{' '}
-                <span className="text-slate-200 font-mono font-semibold">{studentJoinUrl.replace(/\?pin=.*$/, '')}</span>
+              <div className="text-xs text-slate-400 mt-2 mb-1">
+                <span className="text-slate-300 font-semibold">Scan the QR code</span> or enter the Game PIN manually.
                 <button
                   onClick={() => setIsEditingUrl(!isEditingUrl)}
                   className="ml-2 text-[10px] text-rose-400 hover:underline"
                 >
-                  {isEditingUrl ? 'Close' : 'Change URL'}
+                  {isEditingUrl ? 'Close' : 'Change Domain'}
                 </button>
               </div>
 
@@ -102,14 +104,14 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-rose-500"
                   />
                   <p className="text-[10px] text-slate-400">
-                    Changes the QR Code and student link to your custom domain or LAN IP.
+                    QR will point to: <span className="text-emerald-400 font-mono">{studentJoinUrl}</span>
                   </p>
                 </div>
               )}
 
-              {/* QR Code */}
+              {/* QR Code — minimum 280px for projector/smart board readability */}
               <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-slate-800 inline-block mb-3">
-                <QRCodeSVG value={studentJoinUrl} size={190} level="M" />
+                <QRCodeSVG value={studentJoinUrl} size={280} level="M" includeMargin />
               </div>
               
               <div className="flex items-center gap-2 mb-2">

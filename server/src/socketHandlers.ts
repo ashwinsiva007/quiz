@@ -84,6 +84,24 @@ export function registerSocketHandlers(io: Server) {
     });
 
     // --- STUDENT EVENTS ---
+
+    // PIN validation — called before showing the name entry form
+    socket.on('student:checkPin', (data: { pin: string }, callback?: (res: { exists: boolean; gameState?: string; participantCount?: number; message?: string }) => void) => {
+      if (!activeQuiz) {
+        if (callback) callback({ exists: false, message: 'NO ACTIVE QUIZ ROOM' });
+        return;
+      }
+      if (!data || data.pin.trim() !== activeQuiz.pin) {
+        if (callback) callback({ exists: false, message: 'INVALID GAME PIN' });
+        return;
+      }
+      if (callback) callback({
+        exists: true,
+        gameState: activeQuiz.state,
+        participantCount: activeQuiz.participants.size,
+      });
+    });
+
     socket.on('student:join', (data: { pin: string; name: string }) => {
       if (!activeQuiz) {
         socket.emit('student:joinResponse', { success: false, message: 'NO ACTIVE QUIZ ROOM' });

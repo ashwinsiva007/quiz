@@ -512,11 +512,28 @@ export const socket = {
         gameEngine.kickParticipant(data.socketIdOrName);
         break;
 
-      case 'student:join':
+      case 'student:checkPin': {
+        // Validate that the PIN exists and the game is in a joinable state
+        const engineState = gameEngine.getHostState();
+        const pinMatches = data.pin && data.pin.trim() === engineState.pin;
+        if (pinMatches) {
+          if (cb) cb({
+            exists: true,
+            gameState: engineState.state,
+            participantCount: engineState.participantCount,
+          });
+        } else {
+          if (cb) cb({ exists: false, message: 'GAME NOT FOUND' });
+        }
+        break;
+      }
+
+      case 'student:join': {
         const joinRes = gameEngine.studentJoin(data.pin, data.name);
         if (cb) cb({ success: joinRes.success, pin: data.pin });
         gameEngine.emit('student:joinResponse', { success: joinRes.success, pin: data.pin });
         break;
+      }
 
       case 'student:reconnect':
         gameEngine.studentJoin(data.pin, data.name);
