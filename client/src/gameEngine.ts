@@ -1,5 +1,6 @@
 import { Question, HostState, StudentQuizState, LeaderboardEntry, QuestionResultPayload, HostParticipant } from './types';
 import defaultQuestions from './questions.json';
+import { cloudBridge, CloudMessage } from './cloudBridge';
 
 const STORAGE_KEY_STATE = 'asi_quiz_global_state';
 const CHANNEL_NAME = 'asi_quiz_channel';
@@ -34,20 +35,25 @@ class GameEngine {
   private questionStartTime: number = 0;
   private listeners: Map<string, Set<Function>> = new Map();
   public localParticipantId: string;
-  private isHost: boolean = false;
+  public isHostRole: boolean = false;
 
   constructor() {
     this.localParticipantId = this.getOrCreateLocalId();
     this.state = this.loadState() || this.createDefaultState();
 
-    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      try {
-        this.channel = new BroadcastChannel(CHANNEL_NAME);
-        this.channel.onmessage = (event) => {
-          this.handleChannelMessage(event.data);
-        };
-      } catch (e) {
-        console.warn('BroadcastChannel not supported, using storage events');
+    if (typeof window !== 'undefined') {
+      this.isHostRole = window.location.pathname.startsWith('/host');
+
+      // Local BroadcastChannel for same-device tabs
+      if ('BroadcastChannel' in window) {
+        try {
+          this.channel = new BroadcastChannel(CHANNEL_NAME);
+          this.channel.onmessage = (event) => {
+            this.handleChannelMessage(event.data);
+          };
+        } catch (e) {
+          console.warn('BroadcastChannel not supported');
+        }
       }
 
       window.addEventListener('storage', (e) => {
@@ -62,6 +68,10 @@ class GameEngine {
         }
       });
     }
+
+    // Connect to Cloud Realtime Bridge for cross-device synchronization
+    cloudBridge.connect(this.state.pin);
+    cloudBridge.onMessage((msg: CloudMessage) => this.handleCloudMessage(msg));
   }
 
   private getOrCreateLocalId(): string {
@@ -104,7 +114,7 @@ class GameEngine {
     return null;
   }
 
-  private saveAndBroadcast() {
+  private saveAndBroadcast(broadcastCloud: boolean = true) {
     this.state.lastUpdated = Date.now();
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(this.state));
@@ -112,6 +122,12 @@ class GameEngine {
     if (this.channel) {
       this.channel.postMessage({ type: 'STATE_UPDATE', state: this.state });
     }
+
+    if (broadcastCloud) {
+      cloudBridge.connect(this.state.pin);
+      cloudBridge.publish('STATE_UPDATE', { state: this.state });
+    }
+
     this.notifyListeners();
   }
 
@@ -126,8 +142,103 @@ class GameEngine {
     }
   }
 
+  private handleCloudMessage(msg: CloudMessage) {
+    switch (msg.type) {
+      case 'JOIN': {
+        const { id, name } = msg.payload || {};
+        if (id && name) {
+          // If we are host, register this participant and broadcast updated state
+          if (this.isHostRole) {
+            let existing = this.state.participants.find((p) => p.id === id);
+            if (!existing) {
+              this.state.participants.push({
+                id,
+                name: name.trim(),
+                score: 0,
+                lastQuestionScore: 0,
+                hasAnswered: false,
+                selectedOption: null,
+                answerTime: null,
+              });
+            } else {
+              existing.name = name.trim();
+            }
+            this.saveAndBroadcast(true);
+          }
+        }
+        break;
+      }
+
+      case 'ANSWER': {
+        const { id, optionIndex } = msg.payload || {};
+        if (this.isHostRole && id !== undefined && optionIndex !== undefined) {
+          const p = this.state.participants.find((item) => item.id === id);
+          if (p && !p.hasAnswered && this.state.state === 'QUESTION_ACTIVE') {
+            const currentQ = this.state.questions[this.state.currentQuestionIndex];
+            const timeTaken = (Date.now() - this.questionStartTime) / 1000;
+            const isCorrect = optionIndex === currentQ?.correctAnswer;
+
+            p.hasAnswered = true;
+            p.selectedOption = optionIndex;
+            p.answerTime = timeTaken;
+
+            let pts = 0;
+            if (isCorrect) {
+              const speedBonus = Math.max(0, Math.floor((1 - timeTaken / this.state.timeLimit) * 500));
+              pts = 1000 + speedBonus;
+              p.score += pts;
+              p.lastQuestionScore = pts;
+            } else {
+              p.lastQuestionScore = 0;
+            }
+
+            // Check if all participants have answered
+            const allAnswered = this.state.participants.length > 0 && this.state.participants.every((item) => item.hasAnswered);
+            if (allAnswered) {
+              this.endQuestion();
+            } else {
+              this.saveAndBroadcast(true);
+            }
+          }
+        }
+        break;
+      }
+
+      case 'STATE_UPDATE': {
+        // Students receive full state updates from Host
+        if (msg.payload && msg.payload.state) {
+          const incomingState = msg.payload.state as SharedGameState;
+          // Accept if pin matches and incoming state is newer or valid
+          if (incomingState.pin === this.state.pin) {
+            this.state = incomingState;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(this.state));
+            }
+            this.notifyListeners();
+          }
+        }
+        break;
+      }
+
+      case 'TIMER_TICK': {
+        if (!this.isHostRole && msg.payload?.timeLeft !== undefined) {
+          this.state.timeLeft = msg.payload.timeLeft;
+          this.emit('timerTick', { timeLeft: msg.payload.timeLeft });
+        }
+        break;
+      }
+
+      case 'PING': {
+        if (this.isHostRole) {
+          cloudBridge.publish('STATE_UPDATE', { state: this.state });
+        }
+        break;
+      }
+    }
+  }
+
   public setAsHost(isHost: boolean) {
-    this.isHost = isHost;
+    this.isHostRole = isHost;
   }
 
   public on(event: string, fn: Function) {
@@ -281,6 +392,7 @@ class GameEngine {
 
   // --- HOST ACTIONS ---
   public hostCreateQuiz(title?: string, questions?: Question[]) {
+    this.isHostRole = true;
     this.state.title = title || 'Demystifying Artificial Intelligence';
     if (questions && questions.length > 0) {
       this.state.questions = questions;
@@ -289,19 +401,22 @@ class GameEngine {
     this.state.state = 'LOBBY';
     this.state.currentQuestionIndex = 0;
     this.state.participants = [];
-    this.saveAndBroadcast();
+    cloudBridge.connect(this.state.pin);
+    this.saveAndBroadcast(true);
     return this.state.pin;
   }
 
   public startQuiz() {
+    this.isHostRole = true;
     this.state.currentQuestionIndex = 0;
     this.startQuestion(0);
   }
 
   public startQuestion(index: number) {
+    this.isHostRole = true;
     if (index >= this.state.questions.length) {
       this.state.state = 'FINISHED';
-      this.saveAndBroadcast();
+      this.saveAndBroadcast(true);
       return;
     }
 
@@ -312,7 +427,7 @@ class GameEngine {
     this.state.state = 'QUESTION_ACTIVE';
     this.questionStartTime = Date.now();
 
-    // Reset answers
+    // Reset participant question states
     this.state.participants.forEach((p) => {
       p.hasAnswered = false;
       p.selectedOption = null;
@@ -320,7 +435,7 @@ class GameEngine {
       p.lastQuestionScore = 0;
     });
 
-    this.saveAndBroadcast();
+    this.saveAndBroadcast(true);
 
     if (this.timer) clearInterval(this.timer);
 
@@ -329,6 +444,7 @@ class GameEngine {
       if (this.channel) {
         this.channel.postMessage({ type: 'TIMER_TICK', timeLeft: this.state.timeLeft });
       }
+      cloudBridge.publish('TIMER_TICK', { timeLeft: this.state.timeLeft });
       this.emit('timerTick', { timeLeft: this.state.timeLeft });
 
       if (this.state.timeLeft <= 0) {
@@ -339,50 +455,53 @@ class GameEngine {
   }
 
   public endQuestion() {
+    this.isHostRole = true;
     if (this.timer) clearInterval(this.timer);
     this.state.state = 'QUESTION_RESULTS';
-    this.saveAndBroadcast();
+    this.saveAndBroadcast(true);
   }
 
   public showLeaderboard() {
+    this.isHostRole = true;
     this.state.state = 'LEADERBOARD';
-    this.saveAndBroadcast();
+    this.saveAndBroadcast(true);
   }
 
   public nextQuestion() {
+    this.isHostRole = true;
     if (this.state.currentQuestionIndex + 1 < this.state.questions.length) {
       this.startQuestion(this.state.currentQuestionIndex + 1);
     } else {
       this.state.state = 'FINISHED';
-      this.saveAndBroadcast();
+      this.saveAndBroadcast(true);
     }
   }
 
   public resetQuiz() {
+    this.isHostRole = true;
     if (this.timer) clearInterval(this.timer);
     this.state.state = 'LOBBY';
     this.state.currentQuestionIndex = 0;
     this.state.timeLeft = 20;
     this.state.pin = Math.floor(100000 + Math.random() * 900000).toString();
     this.state.participants = [];
-    this.saveAndBroadcast();
+    cloudBridge.connect(this.state.pin);
+    this.saveAndBroadcast(true);
   }
 
   public kickParticipant(socketIdOrName: string) {
+    this.isHostRole = true;
     this.state.participants = this.state.participants.filter(
       (p) => p.id !== socketIdOrName && p.name !== socketIdOrName
     );
-    this.saveAndBroadcast();
+    this.saveAndBroadcast(true);
   }
 
   // --- PARTICIPANT ACTIONS ---
   public studentJoin(pin: string, name: string): { success: boolean; message?: string } {
     const cleanPin = pin.trim();
-    // Allow matching PIN or auto-attach if pin is valid
-    if (cleanPin && cleanPin !== this.state.pin) {
-      // Sync to active PIN if user scanned with that PIN
-      this.state.pin = cleanPin;
-    }
+    this.state.pin = cleanPin;
+    cloudBridge.connect(cleanPin);
 
     const cleanName = name.trim() || `Player ${Math.floor(100 + Math.random() * 900)}`;
 
@@ -402,47 +521,23 @@ class GameEngine {
       existing.name = cleanName;
     }
 
-    this.saveAndBroadcast();
+    // Publish to cloud bridge so Host sees this student immediately
+    cloudBridge.publish('JOIN', { id: this.localParticipantId, name: cleanName, pin: cleanPin });
+    this.saveAndBroadcast(false);
     return { success: true };
   }
 
   public studentSubmitAnswer(optionIndex: number): { success: boolean } {
-    if (this.state.state !== 'QUESTION_ACTIVE') {
-      return { success: false };
-    }
-
     const p = this.state.participants.find((item) => item.id === this.localParticipantId);
-    if (!p || p.hasAnswered) {
-      return { success: false };
+    if (p) {
+      p.hasAnswered = true;
+      p.selectedOption = optionIndex;
     }
 
-    const currentQ = this.state.questions[this.state.currentQuestionIndex];
-    const timeTaken = (Date.now() - this.questionStartTime) / 1000;
-    const isCorrect = optionIndex === currentQ?.correctAnswer;
-
-    p.hasAnswered = true;
-    p.selectedOption = optionIndex;
-    p.answerTime = timeTaken;
-
-    let pts = 0;
-    if (isCorrect) {
-      const speedBonus = Math.max(0, Math.floor((1 - timeTaken / this.state.timeLimit) * 500));
-      pts = 1000 + speedBonus;
-      p.score += pts;
-      p.lastQuestionScore = pts;
-    } else {
-      p.lastQuestionScore = 0;
-    }
-
-    this.saveAndBroadcast();
+    // Publish to cloud bridge so Host records the answer in real time
+    cloudBridge.publish('ANSWER', { id: this.localParticipantId, optionIndex, pin: this.state.pin });
+    this.notifyListeners();
     return { success: true };
-  }
-
-  // --- SOLO PLAYTHROUGH (Direct Play) ---
-  public startSoloGame(name: string) {
-    this.state.pin = Math.floor(100000 + Math.random() * 900000).toString();
-    this.studentJoin(this.state.pin, name);
-    this.startQuiz();
   }
 }
 
@@ -513,7 +608,6 @@ export const socket = {
         break;
 
       case 'student:checkPin': {
-        // Validate that the PIN exists and the game is in a joinable state
         const engineState = gameEngine.getHostState();
         const pinMatches = data.pin && data.pin.trim() === engineState.pin;
         if (pinMatches) {
@@ -523,7 +617,9 @@ export const socket = {
             participantCount: engineState.participantCount,
           });
         } else {
-          if (cb) cb({ exists: false, message: 'GAME NOT FOUND' });
+          // If in student mode, connect to cloud and accept the pin
+          cloudBridge.connect(data.pin);
+          if (cb) cb({ exists: true, gameState: 'LOBBY', participantCount: 0 });
         }
         break;
       }
