@@ -49,9 +49,9 @@ export const App: React.FC = () => {
     leaderboard: [],
   });
 
-  // ── Session restore (root route only, not /join) ─────────────────
+  // ── Session restore (all student routes) ─────────────────────────
   useEffect(() => {
-    if (!isHost && !isJoinRoute) {
+    if (!isHost) {
       const savedPin = sessionStorage.getItem('asi_quiz_pin');
       const savedName = sessionStorage.getItem('asi_quiz_name');
       if (savedPin && savedName) {
