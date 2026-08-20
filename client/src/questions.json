@@ -9,7 +9,7 @@
       "D. PCA (Principal Component Analysis)"
     ],
     "correctAnswer": 1,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
       "D. Decision Trees"
     ],
     "correctAnswer": 2,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 3,
@@ -33,7 +33,7 @@
       "D. Quantization"
     ],
     "correctAnswer": 2,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 4,
@@ -45,7 +45,7 @@
       "D. Self-Supervised Learning"
     ],
     "correctAnswer": 2,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 5,
@@ -57,7 +57,7 @@
       "D. Key-Value Store"
     ],
     "correctAnswer": 1,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 6,
@@ -69,7 +69,7 @@
       "D. Tokenization"
     ],
     "correctAnswer": 0,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 7,
@@ -81,7 +81,7 @@
       "D. Decoding"
     ],
     "correctAnswer": 1,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 8,
@@ -93,7 +93,7 @@
       "D. High Bias"
     ],
     "correctAnswer": 1,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 9,
@@ -105,7 +105,7 @@
       "D. Automatically translating text to SQL"
     ],
     "correctAnswer": 1,
-    "timeLimit": 20
+    "timeLimit": 15
   },
   {
     "id": 10,
@@ -117,6 +117,6 @@
       "D. MLP (Multilayer Perceptron)"
     ],
     "correctAnswer": 0,
-    "timeLimit": 20
+    "timeLimit": 15
   }
 ]

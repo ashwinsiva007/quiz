@@ -22,7 +22,7 @@ export class QuizEngine {
   public participants: Map<string, Participant> = new Map(); // socketId -> Participant
   public timer: NodeJS.Timeout | null = null;
   public timeLeft: number = 0;
-  public timeLimit: number = 20;
+  public timeLimit: number = 15;
   private onStateChangeCallback: (() => void) | null = null;
   private onTimerTickCallback: ((timeLeft: number) => void) | null = null;
 
@@ -130,7 +130,7 @@ export class QuizEngine {
     this.currentQuestionIndex = index;
     this.state = 'QUESTION_ACTIVE';
     const q = this.questions[index];
-    this.timeLimit = q.timeLimit || 20;
+    this.timeLimit = q.timeLimit || 15;
     this.timeLeft = this.timeLimit;
 
     // Reset participant question states
@@ -180,15 +180,10 @@ export class QuizEngine {
     participant.selectedOption = optionIndex;
     participant.answerTimeSec = this.timeLimit - this.timeLeft;
 
-    // Check if ALL participants have answered
-    const totalAnswered = Array.from(this.participants.values()).filter(p => p.hasAnsweredCurrentQuestion).length;
-    if (totalAnswered > 0 && totalAnswered >= this.participants.size) {
-      // Early auto-end if everyone submitted!
-      this.endQuestion();
-    } else {
-      if (this.onStateChangeCallback) {
-        this.onStateChangeCallback();
-      }
+    // Note: Do NOT end question early. The 15-second answering window remains open
+    // so answers are not revealed prematurely and the timer completes its full duration.
+    if (this.onStateChangeCallback) {
+      this.onStateChangeCallback();
     }
 
     return { success: true };
@@ -236,7 +231,7 @@ export class QuizEngine {
     // Show leaderboard every 5 questions and after Q13 onwards
     const isLeaderboardMilestone = (questionNumber % 5 === 0) || (questionNumber >= 13);
 
-    // Auto-advance
+    // Auto-advance: Display answer results for 5s (15s answering + 5s results = 20s total per question cycle)
     this.autoAdvanceTimer = setTimeout(() => {
       if (isLast) {
         this.finishQuiz();
@@ -310,8 +305,9 @@ export class QuizEngine {
   }
 
   public getCurrentClientQuestion(): ClientQuestion | null {
-    if (this.state !== 'QUESTION_ACTIVE') return null;
+    if (this.state !== 'QUESTION_ACTIVE' && this.state !== 'QUESTION_RESULTS') return null;
     const q = this.questions[this.currentQuestionIndex];
+    if (!q) return null;
     return {
       id: q.id,
       questionIndex: this.currentQuestionIndex + 1,

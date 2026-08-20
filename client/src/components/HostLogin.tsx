@@ -25,7 +25,7 @@ export const HostLogin: React.FC<HostLoginProps> = ({ onHostAuthenticated }) => 
   const [optC, setOptC] = useState('');
   const [optD, setOptD] = useState('');
   const [correctIdx, setCorrectIdx] = useState<number>(0);
-  const [timeLimit, setTimeLimit] = useState<number>(20);
+  const [timeLimit, setTimeLimit] = useState<number>(15);
 
   const handleSaveQuestion = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +75,7 @@ export const HostLogin: React.FC<HostLoginProps> = ({ onHostAuthenticated }) => 
     setOptC(q.options[2]?.replace(/^[A-D]\.\s*/, '') || '');
     setOptD(q.options[3]?.replace(/^[A-D]\.\s*/, '') || '');
     setCorrectIdx(q.correctAnswer);
-    setTimeLimit(q.timeLimit || 20);
+    setTimeLimit(q.timeLimit || 15);
   };
 
   const handleDeleteQuestion = (idx: number) => {

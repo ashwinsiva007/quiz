@@ -158,7 +158,7 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
                   Total Score: <span className="font-bold text-white font-mono">{studentResult.score} PTS</span>
                 </div>
               </div>
-            ) : (
+            ) : studentResult.selectedOption !== null && studentResult.selectedOption !== undefined ? (
               <div className="bg-rose-950/60 border-2 border-rose-500/50 rounded-3xl p-8 text-center shadow-2xl space-y-4">
                 <XCircle className="w-16 h-16 text-rose-400 mx-auto" />
                 <h3 className="text-3xl font-black text-rose-300 font-['Outfit']">NOT QUITE</h3>
@@ -172,10 +172,27 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
                   Current Score: <span className="font-bold text-white font-mono">{studentResult.score} PTS</span>
                 </div>
               </div>
+            ) : (
+              <div className="bg-slate-900/90 border-2 border-amber-500/50 rounded-3xl p-8 text-center shadow-2xl space-y-4">
+                <Clock className="w-16 h-16 text-amber-400 mx-auto" />
+                <h3 className="text-3xl font-black text-amber-300 font-['Outfit']">TIME'S UP!</h3>
+                <p className="text-sm text-slate-300">
+                  You did not submit an answer in time.
+                </p>
+                <p className="text-sm text-emerald-300">
+                  Correct Answer:{' '}
+                  <span className="font-bold text-white">
+                    {getOptionLetter(studentResult.correctOption)}. {currentQuestion?.options[studentResult.correctOption]?.replace(/^[A-D]\.\s*/, '')}
+                  </span>
+                </p>
+                <div className="text-sm text-slate-300 pt-2">
+                  Current Score: <span className="font-bold text-white font-mono">{studentResult.score} PTS</span>
+                </div>
+              </div>
             )}
 
             <div className="text-center pt-2 text-sm text-slate-400 font-medium">
-              Waiting for host to reveal results…
+              ⚡ Next question starting in 5s (Auto)...
             </div>
           </div>
         )}

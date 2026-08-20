@@ -93,7 +93,7 @@ class GameEngine {
       state: 'LOBBY',
       currentQuestionIndex: 0,
       timeLeft: 20,
-      timeLimit: 20,
+      timeLimit: 15,
       questions: defaultQuestions as Question[],
       participants: [],
       lastUpdated: Date.now(),
@@ -192,13 +192,8 @@ class GameEngine {
               p.lastQuestionScore = 0;
             }
 
-            // Check if all participants have answered
-            const allAnswered = this.state.participants.length > 0 && this.state.participants.every((item) => item.hasAnswered);
-            if (allAnswered) {
-              this.endQuestion();
-            } else {
-              this.saveAndBroadcast(true);
-            }
+            // Keep answering window open for full 15 seconds without ending early
+            this.saveAndBroadcast(true);
           }
         }
         break;
@@ -432,7 +427,7 @@ class GameEngine {
 
     this.state.currentQuestionIndex = index;
     const q = this.state.questions[index];
-    this.state.timeLimit = q.timeLimit || 20;
+    this.state.timeLimit = q.timeLimit || 15;
     this.state.timeLeft = this.state.timeLimit;
     this.state.state = 'QUESTION_ACTIVE';
     this.questionStartTime = Date.now();
