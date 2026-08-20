@@ -3,6 +3,7 @@ import mqtt, { MqttClient } from 'mqtt';
 const BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
   'wss://broker.hivemq.com:8884/mqtt',
+  'wss://test.mosquitto.org:8081/mqtt',
 ];
 
 export interface CloudMessage {
@@ -22,6 +23,7 @@ class CloudBridge {
   private messageHandlers: Set<CloudMessageHandler> = new Set();
   public isConnected: boolean = false;
   private clientId: string;
+  private retryCount: number = 0;
 
   constructor() {
     this.clientId = 'asi_' + Math.random().toString(36).substring(2, 11);
@@ -53,18 +55,21 @@ class CloudBridge {
       this.client = mqtt.connect(brokerUrl, {
         clientId: this.clientId,
         clean: true,
-        connectTimeout: 8000,
+        connectTimeout: 6000,
         reconnectPeriod: 2000,
-        keepalive: 30,
+        keepalive: 20,
       });
 
       this.client.on('connect', () => {
         this.isConnected = true;
+        this.retryCount = 0;
         if (this.currentPin) {
           const topic = `asi/quiz/${this.currentPin}/#`;
           this.client?.subscribe(topic, { qos: 0 }, (err) => {
             if (err) console.warn('[CloudBridge] Subscribe error:', err);
           });
+          // Request state immediately on connect
+          this.publish('PING');
         }
       });
 
@@ -88,6 +93,11 @@ class CloudBridge {
 
       this.client.on('error', (err) => {
         console.warn('[CloudBridge] MQTT Error:', err.message);
+        this.retryCount++;
+        if (this.retryCount > 2) {
+          this.currentBrokerIdx++;
+          this.retryCount = 0;
+        }
       });
 
       this.client.on('offline', () => {
@@ -105,7 +115,7 @@ class CloudBridge {
   }
 
   public publish(type: CloudMessage['type'], payload?: any) {
-    if (!this.client || !this.currentPin) return;
+    if (!this.client || !this.currentPin || !this.isConnected) return;
 
     const topic = `asi/quiz/${this.currentPin}/${type.toLowerCase()}`;
     const message: CloudMessage = {

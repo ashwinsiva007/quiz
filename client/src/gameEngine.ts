@@ -72,6 +72,22 @@ class GameEngine {
     // Connect to Cloud Realtime Bridge for cross-device synchronization
     cloudBridge.connect(this.state.pin);
     cloudBridge.onMessage((msg: CloudMessage) => this.handleCloudMessage(msg));
+
+    // Active cross-device synchronization loop
+    if (typeof window !== 'undefined') {
+      setInterval(() => {
+        if (this.isHostRole) {
+          if (this.state.state !== 'FINISHED' && this.state.pin && this.state.pin !== '------') {
+            cloudBridge.publish('STATE_UPDATE', { state: this.state });
+          }
+        } else {
+          // If student is waiting in lobby or during game, send PING periodically to stay synced
+          if (this.state.pin && this.state.pin !== '------') {
+            cloudBridge.publish('PING');
+          }
+        }
+      }, 1800);
+    }
   }
 
   private getOrCreateLocalId(): string {
@@ -420,6 +436,8 @@ class GameEngine {
   public startQuestion(index: number) {
     this.isHostRole = true;
     this.clearAutoAdvanceTimer();
+    if (this.timer) clearInterval(this.timer);
+
     if (index >= this.state.questions.length) {
       this.finishQuiz();
       return;
@@ -441,8 +459,7 @@ class GameEngine {
     });
 
     this.saveAndBroadcast(true);
-
-    if (this.timer) clearInterval(this.timer);
+    this.emit('timerTick', { timeLeft: this.state.timeLeft });
 
     this.timer = setInterval(() => {
       this.state.timeLeft--;
@@ -465,49 +482,74 @@ class GameEngine {
     this.clearAutoAdvanceTimer();
 
     this.state.state = 'QUESTION_RESULTS';
+    this.state.timeLeft = 5; // 5-second countdown to review answer results
     this.saveAndBroadcast(true);
+    this.emit('timerTick', { timeLeft: this.state.timeLeft });
 
     const questionNumber = this.state.currentQuestionIndex + 1;
     const totalQuestions = this.state.questions.length;
     const isLast = questionNumber >= totalQuestions;
-    // Show leaderboard every 5th question (Q5, Q10, Q15) AND after 13th question onwards (Q13, Q14...)
     const isLeaderboardMilestone = (questionNumber % 5 === 0) || (questionNumber >= 13);
 
-    // Auto-advance sequence:
-    // Display results for 5 seconds
-    this.autoAdvanceTimer = setTimeout(() => {
-      if (isLast) {
-        this.finishQuiz();
-      } else if (isLeaderboardMilestone) {
-        this.showLeaderboard();
-      } else {
-        this.nextQuestion();
+    // Active 1-second countdown for results intermission
+    this.timer = setInterval(() => {
+      this.state.timeLeft--;
+      if (this.channel) {
+        this.channel.postMessage({ type: 'TIMER_TICK', timeLeft: this.state.timeLeft });
       }
-    }, 5000);
+      cloudBridge.publish('TIMER_TICK', { timeLeft: this.state.timeLeft });
+      this.emit('timerTick', { timeLeft: this.state.timeLeft });
+
+      if (this.state.timeLeft <= 0) {
+        clearInterval(this.timer);
+        if (isLast) {
+          this.finishQuiz();
+        } else if (isLeaderboardMilestone) {
+          this.showLeaderboard();
+        } else {
+          this.nextQuestion();
+        }
+      }
+    }, 1000);
   }
 
   public showLeaderboard() {
     this.isHostRole = true;
+    if (this.timer) clearInterval(this.timer);
     this.clearAutoAdvanceTimer();
+
     this.state.state = 'LEADERBOARD';
+    this.state.timeLeft = 6; // 6-second countdown for leaderboard display
     this.saveAndBroadcast(true);
+    this.emit('timerTick', { timeLeft: this.state.timeLeft });
 
     const questionNumber = this.state.currentQuestionIndex + 1;
     const totalQuestions = this.state.questions.length;
     const isLast = questionNumber >= totalQuestions;
 
-    // Display leaderboard for 6 thrilling seconds, then automatically advance
-    this.autoAdvanceTimer = setTimeout(() => {
-      if (isLast) {
-        this.finishQuiz();
-      } else {
-        this.nextQuestion();
+    // Active 1-second countdown for leaderboard intermission
+    this.timer = setInterval(() => {
+      this.state.timeLeft--;
+      if (this.channel) {
+        this.channel.postMessage({ type: 'TIMER_TICK', timeLeft: this.state.timeLeft });
       }
-    }, 6000);
+      cloudBridge.publish('TIMER_TICK', { timeLeft: this.state.timeLeft });
+      this.emit('timerTick', { timeLeft: this.state.timeLeft });
+
+      if (this.state.timeLeft <= 0) {
+        clearInterval(this.timer);
+        if (isLast) {
+          this.finishQuiz();
+        } else {
+          this.nextQuestion();
+        }
+      }
+    }, 1000);
   }
 
   public nextQuestion() {
     this.isHostRole = true;
+    if (this.timer) clearInterval(this.timer);
     this.clearAutoAdvanceTimer();
     if (this.state.currentQuestionIndex + 1 < this.state.questions.length) {
       this.startQuestion(this.state.currentQuestionIndex + 1);
@@ -521,12 +563,15 @@ class GameEngine {
     this.clearAutoAdvanceTimer();
     if (this.timer) clearInterval(this.timer);
     this.state.state = 'FINISHED';
+    this.state.timeLeft = 0;
     this.saveAndBroadcast(true);
+    this.emit('timerTick', { timeLeft: 0 });
   }
 
   public resetQuiz() {
     this.isHostRole = true;
     if (this.timer) clearInterval(this.timer);
+    this.clearAutoAdvanceTimer();
     this.state.state = 'LOBBY';
     this.state.currentQuestionIndex = 0;
     this.state.timeLeft = 20;

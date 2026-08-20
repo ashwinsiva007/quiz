@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StudentQuizState } from '../types';
 import { socket } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
@@ -12,6 +12,16 @@ interface StudentScreenProps {
 
 export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, studentName, onLeave }) => {
   const { state, currentQuestion, timeLeft, timeLimit, participant, studentResult, leaderboard } = quizState;
+
+  // Auto-sync while waiting in lobby or during game transitions
+  useEffect(() => {
+    if (state === 'LOBBY') {
+      const interval = setInterval(() => {
+        socket.emit('getInitialState');
+      }, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [state]);
 
   const handleSelectOption = (optionIndex: number) => {
     if (state !== 'QUESTION_ACTIVE' || participant?.hasAnswered) return;
@@ -191,8 +201,12 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               </div>
             )}
 
-            <div className="text-center pt-2 text-sm text-slate-400 font-medium">
-              ⚡ Next question starting in 5s (Auto)...
+            <div className="flex items-center justify-center gap-2 text-center pt-2 text-sm text-slate-300 font-semibold bg-slate-900/60 py-2.5 px-4 rounded-2xl border border-slate-800 w-fit mx-auto shadow-md">
+              <Clock className="w-4 h-4 text-amber-400 animate-spin" />
+              <span>
+                Next question in{' '}
+                <strong className="text-amber-400 font-mono text-base">{timeLeft > 0 ? timeLeft : 1}s</strong>…
+              </span>
             </div>
           </div>
         )}
@@ -217,8 +231,12 @@ export const StudentScreen: React.FC<StudentScreenProps> = ({ quizState, student
               </div>
             ) : null}
 
-            <div className="pt-3 text-sm text-slate-400 text-center font-medium">
-              Waiting for next question…
+            <div className="flex items-center justify-center gap-2 text-center pt-2 text-sm text-slate-300 font-semibold bg-slate-900/60 py-2.5 px-4 rounded-2xl border border-slate-800 w-fit mx-auto shadow-md">
+              <Clock className="w-4 h-4 text-emerald-400 animate-spin" />
+              <span>
+                Next question in{' '}
+                <strong className="text-emerald-400 font-mono text-base">{timeLeft > 0 ? timeLeft : 1}s</strong>…
+              </span>
             </div>
           </div>
         )}

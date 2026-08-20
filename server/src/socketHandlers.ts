@@ -119,8 +119,8 @@ export function registerSocketHandlers(io: Server) {
         return;
       }
 
-      if (activeQuiz.state !== 'LOBBY') {
-        respond({ success: false, message: 'QUIZ ALREADY STARTED. This quiz is no longer accepting participants.' });
+      if (activeQuiz.state === 'FINISHED') {
+        respond({ success: false, message: 'QUIZ HAS ENDED. Thank you for participating!' });
         return;
       }
 

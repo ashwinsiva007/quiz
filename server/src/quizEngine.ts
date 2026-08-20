@@ -73,7 +73,7 @@ export class QuizEngine {
       name: trimmedName,
       score: 0,
       lastQuestionScore: 0,
-      hasAnsweredCurrentQuestion: false,
+      hasAnsweredCurrentQuestion: this.state !== 'LOBBY',
       selectedOption: null,
       answerTimeSec: 0,
     };
@@ -122,6 +122,7 @@ export class QuizEngine {
   }
 
   private startQuestion(index: number) {
+    this.stopTimer();
     if (index >= this.questions.length) {
       this.finishQuiz();
       return;
@@ -141,7 +142,13 @@ export class QuizEngine {
       p.lastQuestionScore = 0;
     }
 
-    this.stopTimer();
+    if (this.onTimerTickCallback) {
+      this.onTimerTickCallback(this.timeLeft);
+    }
+    if (this.onStateChangeCallback) {
+      this.onStateChangeCallback();
+    }
+
     this.timer = setInterval(() => {
       this.timeLeft -= 1;
       if (this.onTimerTickCallback) {
@@ -152,10 +159,6 @@ export class QuizEngine {
         this.endQuestion();
       }
     }, 1000);
-
-    if (this.onStateChangeCallback) {
-      this.onStateChangeCallback();
-    }
   }
 
   public submitAnswer(socketId: string, optionIndex: number): { success: boolean; message?: string } {
@@ -180,8 +183,6 @@ export class QuizEngine {
     participant.selectedOption = optionIndex;
     participant.answerTimeSec = this.timeLimit - this.timeLeft;
 
-    // Note: Do NOT end question early. The 15-second answering window remains open
-    // so answers are not revealed prematurely and the timer completes its full duration.
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
@@ -189,20 +190,11 @@ export class QuizEngine {
     return { success: true };
   }
 
-  private autoAdvanceTimer: NodeJS.Timeout | null = null;
-
-  private clearAutoAdvanceTimer() {
-    if (this.autoAdvanceTimer) {
-      clearTimeout(this.autoAdvanceTimer);
-      this.autoAdvanceTimer = null;
-    }
-  }
-
   public endQuestion() {
     if (this.state !== 'QUESTION_ACTIVE') return;
     this.stopTimer();
-    this.clearAutoAdvanceTimer();
     this.state = 'QUESTION_RESULTS';
+    this.timeLeft = 5; // 5-second countdown to reveal and review answers
 
     // Calculate scores for this question
     const currentQ = this.questions[this.currentQuestionIndex];
@@ -221,6 +213,9 @@ export class QuizEngine {
       }
     }
 
+    if (this.onTimerTickCallback) {
+      this.onTimerTickCallback(this.timeLeft);
+    }
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
@@ -228,25 +223,36 @@ export class QuizEngine {
     const questionNumber = this.currentQuestionIndex + 1;
     const totalQuestions = this.questions.length;
     const isLast = questionNumber >= totalQuestions;
-    // Show leaderboard every 5 questions and after Q13 onwards
     const isLeaderboardMilestone = (questionNumber % 5 === 0) || (questionNumber >= 13);
 
-    // Auto-advance: Display answer results for 5s (15s answering + 5s results = 20s total per question cycle)
-    this.autoAdvanceTimer = setTimeout(() => {
-      if (isLast) {
-        this.finishQuiz();
-      } else if (isLeaderboardMilestone) {
-        this.showLeaderboard();
-      } else {
-        this.nextQuestion();
+    // Active 1-second countdown for question results intermission
+    this.timer = setInterval(() => {
+      this.timeLeft -= 1;
+      if (this.onTimerTickCallback) {
+        this.onTimerTickCallback(this.timeLeft);
       }
-    }, 5000);
+
+      if (this.timeLeft <= 0) {
+        this.stopTimer();
+        if (isLast) {
+          this.finishQuiz();
+        } else if (isLeaderboardMilestone) {
+          this.showLeaderboard();
+        } else {
+          this.nextQuestion();
+        }
+      }
+    }, 1000);
   }
 
   public showLeaderboard() {
-    if (this.state !== 'QUESTION_RESULTS') return;
-    this.clearAutoAdvanceTimer();
+    this.stopTimer();
     this.state = 'LEADERBOARD';
+    this.timeLeft = 6; // 6-second countdown for leaderboard display
+
+    if (this.onTimerTickCallback) {
+      this.onTimerTickCallback(this.timeLeft);
+    }
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
@@ -255,18 +261,26 @@ export class QuizEngine {
     const totalQuestions = this.questions.length;
     const isLast = questionNumber >= totalQuestions;
 
-    this.autoAdvanceTimer = setTimeout(() => {
-      if (isLast) {
-        this.finishQuiz();
-      } else {
-        this.nextQuestion();
+    // Active 1-second countdown for leaderboard intermission
+    this.timer = setInterval(() => {
+      this.timeLeft -= 1;
+      if (this.onTimerTickCallback) {
+        this.onTimerTickCallback(this.timeLeft);
       }
-    }, 6000);
+
+      if (this.timeLeft <= 0) {
+        this.stopTimer();
+        if (isLast) {
+          this.finishQuiz();
+        } else {
+          this.nextQuestion();
+        }
+      }
+    }, 1000);
   }
 
   public nextQuestion() {
-    if (this.state !== 'LEADERBOARD' && this.state !== 'QUESTION_RESULTS') return;
-    this.clearAutoAdvanceTimer();
+    this.stopTimer();
     const nextIdx = this.currentQuestionIndex + 1;
     if (nextIdx >= this.questions.length) {
       this.finishQuiz();
@@ -277,16 +291,17 @@ export class QuizEngine {
 
   public finishQuiz() {
     this.stopTimer();
-    this.clearAutoAdvanceTimer();
     this.state = 'FINISHED';
+    this.timeLeft = 0;
+    if (this.onTimerTickCallback) {
+      this.onTimerTickCallback(0);
+    }
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback();
     }
   }
 
   public resetQuiz() {
-    this.stopTimer();
-    this.clearAutoAdvanceTimer();
     this.stopTimer();
     this.state = 'LOBBY';
     this.currentQuestionIndex = 0;

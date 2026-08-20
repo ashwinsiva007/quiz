@@ -318,8 +318,8 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
                 <Clock className="w-4 h-4 animate-spin text-amber-400" />
                 <span>
                   {(currentQuestion?.questionIndex || 1) % 5 === 0 || (currentQuestion?.questionIndex || 1) >= 13
-                    ? '⚡ Leaderboard appearing in 5s (Auto)'
-                    : '⚡ Next question starting in 5s (Auto)'}
+                    ? `⚡ Leaderboard appearing in ${timeLeft > 0 ? timeLeft : 1}s (Auto)`
+                    : `⚡ Next question starting in ${timeLeft > 0 ? timeLeft : 1}s (Auto)`}
                 </span>
               </div>
 
@@ -390,7 +390,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
             <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
               <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-300">
                 <Clock className="w-4 h-4 animate-spin text-emerald-400" />
-                <span>⚡ Next question starting in 6s (Auto)</span>
+                <span>⚡ Next question starting in {timeLeft > 0 ? timeLeft : 1}s (Auto)</span>
               </div>
 
               <button

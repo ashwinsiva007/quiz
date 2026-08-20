@@ -110,11 +110,6 @@ export const StudentJoin: React.FC<StudentJoinProps> = ({ onJoined }) => {
           setErrorMsg('QUIZ HAS ENDED\nThis quiz session is over. Thank you for participating!');
           return;
         }
-        if (gs !== 'LOBBY') {
-          setStep('error_pin');
-          setErrorMsg('QUIZ ALREADY STARTED\nThis quiz is no longer accepting new participants.');
-          return;
-        }
         setParticipantCount(res.participantCount ?? null);
         setStep('name_entry');
       }
