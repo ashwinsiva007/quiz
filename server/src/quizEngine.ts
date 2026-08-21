@@ -161,12 +161,25 @@ export class QuizEngine {
     }, 1000);
   }
 
-  public submitAnswer(socketId: string, optionIndex: number): { success: boolean; message?: string } {
+  public submitAnswer(socketId: string, optionIndex: number, name?: string): { success: boolean; message?: string } {
     if (this.state !== 'QUESTION_ACTIVE') {
       return { success: false, message: 'Question is not active' };
     }
 
-    const participant = this.participants.get(socketId);
+    let participant = this.participants.get(socketId);
+    if (!participant && name) {
+      const trimmed = name.trim().toLowerCase();
+      for (const [sId, p] of this.participants.entries()) {
+        if (p.name.toLowerCase() === trimmed) {
+          this.participants.delete(sId);
+          p.socketId = socketId;
+          this.participants.set(socketId, p);
+          participant = p;
+          break;
+        }
+      }
+    }
+
     if (!participant) {
       return { success: false, message: 'Participant not found in quiz' };
     }

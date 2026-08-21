@@ -186,9 +186,13 @@ class GameEngine {
       }
 
       case 'ANSWER': {
-        const { id, optionIndex } = msg.payload || {};
-        if (this.isHostRole && id !== undefined && optionIndex !== undefined) {
-          const p = this.state.participants.find((item) => item.id === id);
+        const { id, optionIndex, name } = msg.payload || {};
+        if (this.isHostRole && optionIndex !== undefined) {
+          let p = id ? this.state.participants.find((item) => item.id === id) : undefined;
+          if (!p && name) {
+            const cleanName = name.trim().toLowerCase();
+            p = this.state.participants.find((item) => item.name.toLowerCase() === cleanName);
+          }
           if (p && !p.hasAnswered && this.state.state === 'QUESTION_ACTIVE') {
             const currentQ = this.state.questions[this.state.currentQuestionIndex];
             const timeTaken = (Date.now() - this.questionStartTime) / 1000;
@@ -200,15 +204,14 @@ class GameEngine {
 
             let pts = 0;
             if (isCorrect) {
-              const speedBonus = Math.max(0, Math.floor((1 - timeTaken / this.state.timeLimit) * 500));
-              pts = 1000 + speedBonus;
+              const speedBonus = Math.max(0, Math.floor((1 - timeTaken / this.state.timeLimit) * 50));
+              pts = 100 + speedBonus;
               p.score += pts;
               p.lastQuestionScore = pts;
             } else {
               p.lastQuestionScore = 0;
             }
 
-            // Keep answering window open for full 15 seconds without ending early
             this.saveAndBroadcast(true);
           }
         }
@@ -619,15 +622,19 @@ class GameEngine {
     return { success: true };
   }
 
-  public studentSubmitAnswer(optionIndex: number): { success: boolean } {
-    const p = this.state.participants.find((item) => item.id === this.localParticipantId);
+  public studentSubmitAnswer(optionIndex: number, name?: string): { success: boolean } {
+    let p = this.state.participants.find((item) => item.id === this.localParticipantId);
+    if (!p && name) {
+      const cleanName = name.trim().toLowerCase();
+      p = this.state.participants.find((item) => item.name.toLowerCase() === cleanName);
+    }
     if (p) {
       p.hasAnswered = true;
       p.selectedOption = optionIndex;
     }
 
     // Publish to cloud bridge so Host records the answer in real time
-    cloudBridge.publish('ANSWER', { id: this.localParticipantId, optionIndex, pin: this.state.pin });
+    cloudBridge.publish('ANSWER', { id: this.localParticipantId, name, optionIndex, pin: this.state.pin });
     this.notifyListeners();
     return { success: true };
   }
@@ -729,7 +736,7 @@ export const socket = {
         break;
 
       case 'student:submitAnswer':
-        const answerRes = gameEngine.studentSubmitAnswer(data.optionIndex);
+        const answerRes = gameEngine.studentSubmitAnswer(data.optionIndex, data.name);
         if (cb) cb(answerRes);
         break;
 

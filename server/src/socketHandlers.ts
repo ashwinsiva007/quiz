@@ -130,6 +130,9 @@ export function registerSocketHandlers(io: Server) {
         return;
       }
 
+      socket.data.name = data.name.trim();
+      socket.data.pin = data.pin.trim();
+
       socket.join('participants');
       respond({ success: true, participant: res.participant, pin: activeQuiz.pin });
 
@@ -141,6 +144,9 @@ export function registerSocketHandlers(io: Server) {
         socket.emit('student:reconnectResponse', { success: false });
         return;
       }
+
+      socket.data.name = data.name?.trim();
+      socket.data.pin = data.pin?.trim();
 
       const reconnectedP = activeQuiz.reconnectParticipant(socket.id, socket.id, data.name);
       if (reconnectedP) {
@@ -155,14 +161,14 @@ export function registerSocketHandlers(io: Server) {
       }
     });
 
-    socket.on('student:submitAnswer', (data: { optionIndex: number }) => {
+    socket.on('student:submitAnswer', (data: { optionIndex: number; name?: string; pin?: string }) => {
       if (!activeQuiz) return;
-      const res = activeQuiz.submitAnswer(socket.id, data.optionIndex);
+      const res = activeQuiz.submitAnswer(socket.id, data.optionIndex, data.name || socket.data?.name);
       socket.emit('student:answerResponse', res);
     });
 
     socket.on('disconnect', () => {
-      // Keep participant in memory for reconnection grace, but update count if needed
+      // Keep participant in memory for reconnection grace
     });
   });
 }
@@ -193,18 +199,27 @@ function broadcastUpdate(io: Server) {
 }
 
 function getSanitizedStateForSocket(socket: Socket, engine: QuizEngine) {
-  const p = engine.participants.get(socket.id);
-  const qResult = engine.getQuestionResult();
+  let p = engine.participants.get(socket.id);
+  if (!p && socket.data?.name) {
+    const trimmed = socket.data.name.toLowerCase();
+    for (const [, participant] of engine.participants.entries()) {
+      if (participant.name.toLowerCase() === trimmed) {
+        p = participant;
+        break;
+      }
+    }
+  }
+
   const currentQ = engine.questions[engine.currentQuestionIndex];
 
   let studentResult = null;
-  if (p && (engine.state === 'QUESTION_RESULTS' || engine.state === 'LEADERBOARD' || engine.state === 'FINISHED')) {
+  if (engine.state === 'QUESTION_RESULTS' || engine.state === 'LEADERBOARD' || engine.state === 'FINISHED') {
     studentResult = {
-      isCorrect: p.hasAnsweredCurrentQuestion && p.selectedOption === currentQ?.correctAnswer,
-      score: p.score,
-      lastQuestionScore: p.lastQuestionScore,
-      selectedOption: p.selectedOption,
-      correctOption: currentQ?.correctAnswer,
+      isCorrect: p ? (p.hasAnsweredCurrentQuestion && p.selectedOption === currentQ?.correctAnswer) : false,
+      score: p?.score || 0,
+      lastQuestionScore: p?.lastQuestionScore || 0,
+      selectedOption: p?.selectedOption ?? null,
+      correctOption: currentQ?.correctAnswer ?? 0,
     };
   }
 
