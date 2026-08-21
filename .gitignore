@@ -17,3 +17,7 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+smart_board_results_preview.jpg
+student_results_preview.jpg
+*.jpg
+

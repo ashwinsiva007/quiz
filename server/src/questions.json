@@ -1,122 +1,242 @@
 [
   {
     "id": 1,
-    "question": "Which technology allows an LLM to retrieve external information from a knowledge base before generating an answer?",
+    "question": "Which of the following measures are appropriate for nominal scale variables?",
     "options": [
-      "A. CNN (Convolutional Neural Network)",
-      "B. RAG (Retrieval-Augmented Generation)",
-      "C. GAN (Generative Adversarial Network)",
-      "D. PCA (Principal Component Analysis)"
+      "A. Mean",
+      "B. Standard deviation",
+      "C. Median",
+      "D. Mode"
     ],
-    "correctAnswer": 1,
-    "timeLimit": 15
+    "correctAnswer": 3,
+    "timeLimit": 20
   },
   {
     "id": 2,
-    "question": "What is the core architectural innovation behind modern Large Language Models (LLMs) introduced in 2017?",
+    "question": "For a positively skewed distribution",
     "options": [
-      "A. Recurrent Neural Networks (RNN)",
-      "B. Support Vector Machines (SVM)",
-      "C. Transformer Architecture",
-      "D. Decision Trees"
+      "A. Median is greater than mean",
+      "B. Mean is greater than median",
+      "C. Mode is greater than median, and median is greater than mean",
+      "D. Mean is greater than median, and median is greater than mode"
     ],
-    "correctAnswer": 2,
-    "timeLimit": 15
+    "correctAnswer": 3,
+    "timeLimit": 20
   },
   {
     "id": 3,
-    "question": "What term describes when an AI language model generates convincing but incorrect or fabricated information?",
+    "question": "In a box plot the length of the box is",
     "options": [
-      "A. Overfitting",
-      "B. Gradient Descent",
-      "C. Hallucination",
-      "D. Quantization"
+      "A. Equal to the variance of the data",
+      "B. Equal to the standard deviation",
+      "C. Equal to inter-quartile range (IQR)",
+      "D. Equal to median + 1.5IQR"
     ],
     "correctAnswer": 2,
-    "timeLimit": 15
+    "timeLimit": 20
   },
   {
     "id": 4,
-    "question": "Which type of machine learning uses rewards and penalties to train an agent in an interactive environment?",
+    "question": "If two events A and B are dependent, then",
     "options": [
-      "A. Supervised Learning",
-      "B. Unsupervised Learning",
-      "C. Reinforcement Learning",
-      "D. Self-Supervised Learning"
+      "A. P(A ∩ B) = P(A) + P(B) – P(A ∪ B)",
+      "B. P(A ∩ B) = P(A) * P(B)",
+      "C. P(A ∩ B) = P(A) × P(B|A)",
+      "D. P(A ∩ B) = P(B) × P(B|A)"
     ],
     "correctAnswer": 2,
-    "timeLimit": 15
+    "timeLimit": 20
   },
   {
     "id": 5,
-    "question": "What kind of database is specifically optimized for storing and searching high-dimensional vector embeddings in AI applications?",
+    "question": "Which of the following statements is/are correct?",
     "options": [
-      "A. Relational Database (SQL)",
-      "B. Vector Database (e.g. Pinecone, Chroma)",
-      "C. Graph Database",
-      "D. Key-Value Store"
+      "A. If two events are independent, then they are also mutually exclusive.",
+      "B. If two events are mutually exclusive, then they are dependent events.",
+      "C. If two events are independent, then they cannot be mutually exclusive.",
+      "D. If two events are mutually exclusive, then they are independent."
     ],
     "correctAnswer": 1,
-    "timeLimit": 15
+    "timeLimit": 20
   },
   {
     "id": 6,
-    "question": "Which process adjusts the weights of a pre-trained foundation model on a specific domain dataset to improve performance?",
+    "question": "Heinz India claims that the children who drink Complan grow at a faster rate compared children who do not drink Complan. Which technique can be used to verify this claim?",
     "options": [
-      "A. Fine-Tuning",
-      "B. Data Normalization",
-      "C. Web Scraping",
-      "D. Tokenization"
+      "A. Logistic Regression",
+      "B. Decision Tree Learning.",
+      "C. Hypothesis testing.",
+      "D. Random Forest."
     ],
-    "correctAnswer": 0,
-    "timeLimit": 15
+    "correctAnswer": 2,
+    "timeLimit": 20
   },
   {
     "id": 7,
-    "question": "In Natural Language Processing, what is the term for converting raw text into smaller units (words or subwords) for a model?",
+    "question": "An e-tailer (e-commerce retailer) is interested in predicting the number of returns that the e-tailer is likely to receive on any given day. Which of the following distributions is most appropriate for modelling this problem?",
     "options": [
-      "A. Embedding",
-      "B. Tokenization",
-      "C. Classification",
-      "D. Decoding"
+      "A. Binomial distribution",
+      "B. Normal distribution",
+      "C. Poisson distribution",
+      "D. Geometric distribution"
     ],
-    "correctAnswer": 1,
-    "timeLimit": 15
+    "correctAnswer": 2,
+    "timeLimit": 20
   },
   {
     "id": 8,
-    "question": "When a machine learning model performs exceptionally well on training data but poorly on unseen test data, it is suffering from:",
+    "question": "If the mean and standard deviation of the population are 500 and 100, respectively, and a sampling distribution is constructed by taking several samples of size 100, what will be the standard deviation (standard error) of the sampling distribution?",
     "options": [
-      "A. Underfitting",
-      "B. Overfitting",
-      "C. Vanishing Gradient",
-      "D. High Bias"
+      "A. 5",
+      "B. 100",
+      "C. 10",
+      "D. 50"
     ],
-    "correctAnswer": 1,
-    "timeLimit": 15
+    "correctAnswer": 2,
+    "timeLimit": 20
   },
   {
     "id": 9,
-    "question": "What is the primary function of RLHF (Reinforcement Learning from Human Feedback) in LLM training?",
+    "question": "In an supervised learning algorithm:",
     "options": [
-      "A. Increasing model training speed",
-      "B. Aligning LLM output with human preferences and safety guidelines",
-      "C. Reducing memory footprint of GPUs",
-      "D. Automatically translating text to SQL"
+      "A. The input variables (X) and the output Variable (Y) are known.",
+      "B. The Input variables (X) are unknown, and the output variable Y is known.",
+      "C. The input variables (X) are uncertain and the output Variable Y is known.",
+      "D. The input variables (X) are known and the output variable Y is uncertain."
     ],
-    "correctAnswer": 1,
-    "timeLimit": 15
+    "correctAnswer": 0,
+    "timeLimit": 20
   },
   {
     "id": 10,
-    "question": "Which popular neural network architecture is historically most associated with Computer Vision and Image Processing tasks?",
+    "question": "Which of the following statements about null hypothesis in hypothesis testing is correct?",
     "options": [
-      "A. CNN (Convolutional Neural Network)",
-      "B. LSTM (Long Short-Term Memory)",
-      "C. Autoencoder",
-      "D. MLP (Multilayer Perceptron)"
+      "A. Null hypothesis means no relationship between two variables.",
+      "B. Null hypothesis means there is a relationship between two variables.",
+      "C. In the beginning null hypothesis is assumed to be incorrect.",
+      "D. Null hypothesis will not include the equality sign."
     ],
     "correctAnswer": 0,
-    "timeLimit": 15
+    "timeLimit": 20
+  },
+  {
+    "id": 11,
+    "question": "The significance value α in a hypothesis test is",
+    "options": [
+      "A. Probability accepting a true null hypothesis.",
+      "B. Conditional probability retaining a null hypothesis when null hypothesis is true.",
+      "C. Probability accepting the alternative hypothesis.",
+      "D. Conditional probability of rejecting the null hypothesis when it is true."
+    ],
+    "correctAnswer": 3,
+    "timeLimit": 20
+  },
+  {
+    "id": 12,
+    "question": "The one-sample t-test is used when",
+    "options": [
+      "A. The sample is drawn from a normal distribution and population variance is known.",
+      "B. The sample size is large and population variance is unknown.",
+      "C. The sample size is large, and the standard deviation is known.",
+      "D. The sample size is large, and population follows a normal distribution."
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 13,
+    "question": "Robots are trained using the following machine learning algorithms.",
+    "options": [
+      "A. Self learning algorithms.",
+      "B. Supervised Learning Algorithms.",
+      "C. Reinforcement Learning Algorithms",
+      "D. Evolutionary learning algorithms."
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 14,
+    "question": "In a hypothesis test, the researcher uses (when α = Type I error and β = Type II error):",
+    "options": [
+      "A. α and p-value to decide to reject or retain the null hypothesis",
+      "B. β and p-value to decide to reject or retain the null hypothesis",
+      "C. α to retain the null hypothesis and β to reject the null hypothesis",
+      "D. α to reject the null hypothesis and β to retain the null hypothesis"
+    ],
+    "correctAnswer": 0,
+    "timeLimit": 20
+  },
+  {
+    "id": 15,
+    "question": "An HR manager is interested in checking the effectiveness of a training program on the sales team. The appropriate test for checking the effectiveness of the training program is",
+    "options": [
+      "A. Two population t-test with equal variance",
+      "B. Paired t-test",
+      "C. Two population t-test with unequal variance",
+      "D. Chi-square test of independence"
+    ],
+    "correctAnswer": 1,
+    "timeLimit": 20
+  },
+  {
+    "id": 16,
+    "question": "Deep Learning Algorithms,",
+    "options": [
+      "A. Imitate the structure and functioning of the brain.",
+      "B. Imitates Human learning Process.",
+      "C. Demonstrate human intelligence",
+      "D. Imitate Human Intelligence."
+    ],
+    "correctAnswer": 0,
+    "timeLimit": 20
+  },
+  {
+    "id": 17,
+    "question": "For a one-way ANOVA, the hypothesis test is a",
+    "options": [
+      "A. Right-tailed test",
+      "B. Left-tailed test",
+      "C. Two-tailed test",
+      "D. Depends on null hypothesis"
+    ],
+    "correctAnswer": 0,
+    "timeLimit": 20
+  },
+  {
+    "id": 18,
+    "question": "When you enter a search word in Google search engine, it displays the pages that are more relevant at the top. The algorithms used for this ranking is.",
+    "options": [
+      "A. Regression",
+      "B. Logistic Regression",
+      "C. Markov Chain",
+      "D. Correlation"
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 19,
+    "question": "Which of the following statements are correct?",
+    "options": [
+      "A. Correlation establishes dependency relationship",
+      "B. Correlation establishes causal relationship",
+      "C. Correlation establishes association relationship",
+      "D. All of above"
+    ],
+    "correctAnswer": 2,
+    "timeLimit": 20
+  },
+  {
+    "id": 20,
+    "question": "Pearson correlation between two variables X and Y is 0.85. Pearson correlation between 2 + 3X and 4 – 5Y is",
+    "options": [
+      "A. Less than 0.85",
+      "B. More than 0.85",
+      "C. 0.85",
+      "D. –0.85"
+    ],
+    "correctAnswer": 3,
+    "timeLimit": 20
   }
 ]
