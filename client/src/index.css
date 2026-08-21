@@ -29,11 +29,87 @@
 }
 
 .glow-gold {
-  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.45), 0 0 70px rgba(245, 158, 11, 0.2);
+}
+
+.glow-champion {
+  box-shadow: 0 0 45px rgba(251, 191, 36, 0.6), 0 0 90px rgba(245, 158, 11, 0.3), inset 0 0 25px rgba(251, 191, 36, 0.2);
+}
+
+.glow-silver {
+  box-shadow: 0 0 35px rgba(226, 232, 240, 0.4), 0 0 70px rgba(148, 163, 184, 0.2);
+}
+
+.glow-bronze {
+  box-shadow: 0 0 35px rgba(217, 119, 6, 0.4), 0 0 70px rgba(180, 83, 9, 0.2);
 }
 
 .glow-cyan {
   box-shadow: 0 0 25px rgba(6, 182, 212, 0.35);
+}
+
+/* Arena Stage Spotlight Effect */
+.arena-spotlight {
+  background: radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.18) 0%, rgba(225, 29, 72, 0.12) 35%, transparent 70%),
+              radial-gradient(circle at 50% 120%, rgba(6, 182, 212, 0.1) 0%, transparent 60%);
+}
+
+.podium-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.podium-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 80%
+  );
+  transform: rotate(25deg);
+  animation: shimmerEffect 4s ease-in-out infinite;
+}
+
+@keyframes shimmerEffect {
+  0% {
+    transform: translateX(-150%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(25deg);
+  }
+}
+
+@keyframes trophyFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+.animate-trophy-float {
+  animation: trophyFloat 3s ease-in-out infinite;
+}
+
+@keyframes crownPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
+  }
+  50% {
+    transform: scale(1.1) translateY(-3px);
+    filter: drop-shadow(0 0 20px rgba(251, 191, 36, 1));
+  }
+}
+
+.animate-crown-pulse {
+  animation: crownPulse 2s ease-in-out infinite;
 }
 
 /* Custom Scrollbars */
@@ -51,3 +127,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+

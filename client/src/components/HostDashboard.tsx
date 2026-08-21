@@ -4,6 +4,8 @@ import confetti from 'canvas-confetti';
 import { HostState } from '../types';
 import { socket } from '../socket';
 import { BrandingHeader } from './BrandingHeader';
+import { PodiumFinaleView } from './PodiumFinaleView';
+import { MilestoneLeaderboardView } from './MilestoneLeaderboardView';
 import { Users, Play, SkipForward, RotateCcw, AlertTriangle, X, Award, CheckCircle, BarChart3, Clock, Sparkles } from 'lucide-react';
 
 interface HostDashboardProps {
@@ -345,122 +347,19 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({ hostState }) => {
 
         {/* LEADERBOARD STATE */}
         {state === 'LEADERBOARD' && (
-          <div className="max-w-4xl mx-auto w-full my-auto space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 bg-amber-950/40 border border-amber-500/40 px-4 py-1.5 rounded-full text-amber-400 text-xs font-bold uppercase tracking-widest">
-                <Sparkles className="w-4 h-4" /> LEADERBOARD TOP 5
-              </div>
-              <h2 className="text-4xl font-black text-white font-['Outfit']">CURRENT RANKINGS</h2>
-            </div>
-
-            <div className="space-y-3">
-              {leaderboard.slice(0, 5).map((entry) => {
-                const getRankBadge = (rank: number) => {
-                  if (rank === 1) return { bg: 'bg-amber-500 text-black border-amber-300', icon: '🥇' };
-                  if (rank === 2) return { bg: 'bg-slate-300 text-black border-white', icon: '🥈' };
-                  if (rank === 3) return { bg: 'bg-amber-700 text-white border-amber-600', icon: '🥉' };
-                  return { bg: 'bg-slate-800 text-slate-300 border-slate-700', icon: `#${rank}` };
-                };
-                const badge = getRankBadge(entry.rank);
-
-                return (
-                  <div
-                    key={entry.name}
-                    className="bg-[#151c2e] border border-slate-800 hover:border-slate-700 p-5 rounded-2xl flex items-center justify-between shadow-xl"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`w-12 h-12 rounded-xl font-mono font-black text-xl flex items-center justify-center border ${badge.bg}`}>
-                        {badge.icon}
-                      </span>
-                      <div>
-                        <h4 className="text-xl font-bold text-white">{entry.name}</h4>
-                        {entry.lastQuestionScore > 0 && (
-                          <span className="text-xs font-semibold text-emerald-400">+{entry.lastQuestionScore} pts this round</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-2xl font-mono font-black text-amber-400">
-                      {entry.score} PTS
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
-              <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-300">
-                <Clock className="w-4 h-4 animate-spin text-emerald-400" />
-                <span>⚡ Next question starting in {timeLeft > 0 ? timeLeft : 1}s (Auto)</span>
-              </div>
-
-              <button
-                onClick={handleNextQuestion}
-                className="py-4 px-8 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 shadow-xl flex items-center gap-3"
-              >
-                <SkipForward className="w-5 h-5" />
-                NEXT QUESTION NOW →
-              </button>
-            </div>
-          </div>
+          <MilestoneLeaderboardView
+            leaderboard={leaderboard}
+            timeLeft={timeLeft}
+            onNextQuestion={handleNextQuestion}
+          />
         )}
 
-        {/* FINISHED STATE (PODIUM & WINNERS) */}
+        {/* FINISHED STATE (CHAMPIONSHIP PODIUM & WINNERS) */}
         {state === 'FINISHED' && (
-          <div className="max-w-4xl mx-auto w-full my-auto text-center space-y-8">
-            <div className="space-y-2">
-              <Award className="w-16 h-16 text-amber-400 mx-auto animate-bounce-short" />
-              <h2 className="text-4xl sm:text-5xl font-black text-white font-['Outfit']">QUIZ COMPLETE</h2>
-              <p className="text-rose-400 font-semibold text-lg uppercase tracking-widest">
-                ASI QUIZ ARENA WINNERS
-              </p>
-            </div>
-
-            {/* Podium (1st, 2nd, 3rd) */}
-            <div className="grid grid-cols-3 gap-4 items-end pt-6">
-              {/* 2nd Place */}
-              {leaderboard[1] && (
-                <div className="bg-[#151c2e] border-2 border-slate-400 rounded-3xl p-6 text-center shadow-2xl h-[240px] flex flex-col justify-between">
-                  <span className="text-4xl">🥈</span>
-                  <div>
-                    <h4 className="text-lg font-bold text-white truncate">{leaderboard[1].name}</h4>
-                    <p className="text-xl font-mono font-black text-slate-300 mt-1">{leaderboard[1].score} PTS</p>
-                  </div>
-                  <div className="bg-slate-800 text-slate-300 font-bold py-1 px-3 rounded-lg text-xs">2nd Place</div>
-                </div>
-              )}
-
-              {/* 1st Place */}
-              {leaderboard[0] && (
-                <div className="bg-[#151c2e] border-4 border-amber-400 rounded-3xl p-6 text-center shadow-2xl h-[290px] flex flex-col justify-between glow-gold">
-                  <span className="text-5xl">🥇</span>
-                  <div>
-                    <h4 className="text-2xl font-black text-white truncate">{leaderboard[0].name}</h4>
-                    <p className="text-3xl font-mono font-black text-amber-400 mt-1">{leaderboard[0].score} PTS</p>
-                  </div>
-                  <div className="bg-amber-500 text-black font-extrabold py-1.5 px-4 rounded-xl text-sm uppercase tracking-wider">
-                    CHAMPION
-                  </div>
-                </div>
-              )}
-
-              {/* 3rd Place */}
-              {leaderboard[2] && (
-                <div className="bg-[#151c2e] border-2 border-amber-700 rounded-3xl p-6 text-center shadow-2xl h-[210px] flex flex-col justify-between">
-                  <span className="text-4xl">🥉</span>
-                  <div>
-                    <h4 className="text-lg font-bold text-white truncate">{leaderboard[2].name}</h4>
-                    <p className="text-xl font-mono font-black text-amber-600 mt-1">{leaderboard[2].score} PTS</p>
-                  </div>
-                  <div className="bg-slate-800 text-amber-600 font-bold py-1 px-3 rounded-lg text-xs">3rd Place</div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-slate-300 text-sm">
-              <p className="font-bold text-white text-base mb-1">CONGRATULATIONS TO ALL PARTICIPANTS!</p>
-              <p>Analytics Society of India — Student Chapter</p>
-            </div>
-          </div>
+          <PodiumFinaleView
+            leaderboard={leaderboard}
+            onResetQuiz={() => setShowResetConfirm(true)}
+          />
         )}
       </main>
 
